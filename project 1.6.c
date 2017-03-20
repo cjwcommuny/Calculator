@@ -9,15 +9,18 @@
 #define MAXSIZE 100
 #define STRINGSIZE 10
 
+/*解决两个bug，使程序支持类似lg10的语句*/
 void Prompt(void);
 void ConvertToPostfix(void);
 void Process(void);
+bool CheckAssociation(string op);
 int CompareAssociationPriority(char op1, char op2);
 int NumOperand(string OperatorNameStr);
 double CallFunction(string NameOfFunction, struct stack_node **OperandStackP);
 void Output(string str);
 double factorial(int n);
 double Abs(double x);
+double LOG(double base, double antilog);
 
 queueADT PostfixNotation;
 struct stack_node **OperatorStackP;
@@ -53,7 +56,7 @@ void ConvertToPostfix(void)
             *(input+1) = '\0';
             while (StackSize(OperatorStack)) {
             	temp = Pop(OperatorStackP);
-                if ((*temp == '(') || (*temp == ')')) Error("Braces are not compatible\n"); /*could be improve*/
+                if ((*temp == '(') || (*temp == ')')) Error("Braces are not compatible.\n"); /*could be improve*/
                 Enqueue(PostfixNotation, temp);
             }
                 Enqueue(PostfixNotation, input);
@@ -108,22 +111,32 @@ void ConvertToPostfix(void)
                 	}
             	}
             	*input = '\0';
+                while (StackSize(OperatorStack)) {
+                    char *temp;
+				
+                    temp = Top(OperatorStackP);
+                    if ((*temp != '+') && (*temp != '-') && (*temp != '*') && (*temp != '/') && (*temp != '^') && (*temp != '!') && (*temp < 'a') && (*temp > 'z')) break;
+                    if ((CheckAssociation(InputOrigin) && CompareAssociationPriority(*temp, *InputOrigin) >= 0) || (!CheckAssociation(InputOrigin) && CompareAssociationPriority(*temp, *InputOrigin) > 0)) Enqueue(PostfixNotation, Pop(OperatorStackP));
+				    else break;
+                }
             	Push(OperatorStackP, InputOrigin);
             	PreCh = input - 1;
             }	
-        } else if ((*input == '+') || (*input == '-') || (*input == '*') || (*input == '/') || (*input == '^')) { /*If the token is an operator.*/
+        } else if ((*input == '+') || (*input == '-') || (*input == '*') || (*input == '/') || (*input == '^') || (*input == '!')) { /*If the token is an operator.*/
             if ((*input == '-') && (PreCh == NULL || *PreCh == '(')) {
                 input = "-1\0";
                 Enqueue(PostfixNotation, input);
                 ungetc('*', stdin);
+            } else if ((*input == '+') && (PreCh == NULL || *PreCh == '(')) {
+                FreeBlock(input);
             } else {
                 *(input+1) = '\0';
                 while (StackSize(OperatorStack)) {
                     char *temp;
 				
                     temp = Top(OperatorStackP);
-                    if ((*temp != '+') && (*temp != '-') && (*temp != '*') && (*temp != '/') && (*temp != '^')) break;
-                    if (CompareAssociationPriority(*temp, *input) >= 0) Enqueue(PostfixNotation, Pop(OperatorStackP)); /*There no need to check the direction of the association.*/ 
+                    if ((*temp != '+') && (*temp != '-') && (*temp != '*') && (*temp != '/') && (*temp != '^') && (*temp != '!') && ((*temp < 'a') || (*temp > 'z'))) break;
+                    if ((CheckAssociation(input) && CompareAssociationPriority(*temp, *input) >= 0) || (!CheckAssociation(input) && CompareAssociationPriority(*temp, *input) > 0)) Enqueue(PostfixNotation, Pop(OperatorStackP));  
 				    else break;
                 }
 			    Push(OperatorStackP, input);
@@ -138,6 +151,7 @@ void ConvertToPostfix(void)
         	
             *(input+1) = '\0';
             while (TRUE) {
+                printf("stacksize2: %d\n", StackSize(OperatorStack));
                 if (StackSize(OperatorStack) == 0) Error("Braces are not compatible\n");
                 temp = Pop(OperatorStackP);
                 if (*temp == '(') break;
@@ -148,7 +162,22 @@ void ConvertToPostfix(void)
             	if (*temp >= 'a' && *temp <= 'z') Enqueue(PostfixNotation, Pop(OperatorStackP));
             }
             PreCh = input;
-        } else {
+        } else if (*input == ',') {
+            *(input+1) = '\0';
+            string temp;
+
+            while (StackSize(OperatorStack)) {
+                printf("stacksize1:%d\n", StackSize(OperatorStack));
+                printf("top:%s\n", temp = Top(OperatorStackP));
+                if (*(temp = Top(OperatorStackP)) == '(') break;
+                printf("flag\n");
+                Enqueue(PostfixNotation, Pop(OperatorStackP));
+            }
+            printf("stacksize:%d\n", StackSize(OperatorStack));
+            if (*(temp = Top(OperatorStackP)) != '(') Error("Either the separator was misplaced or parentheses were mismatched");
+            PreCh = input;
+        }
+          else {
             Error("there is a illegal character.");
         }
     }
@@ -156,14 +185,20 @@ void ConvertToPostfix(void)
     FreeBlock(OperatorStackP);
 }
 
+bool CheckAssociation(string op)
+{
+     if (StringEqual(op, "+") || StringEqual(op, "-") || StringEqual(op, "*") || StringEqual(op, "/") || StringEqual(op, "^")) return 1;
+     else return 0;
+}
+
 int CompareAssociationPriority(char op1, char op2)
 {
     int priority1, priority2;
 
-    if (op1 == '^') priority1 = 3;
+    if (op1 == '^' || op1 == '!' || (op1 >= 'a' && op2 <= 'z')) priority1 = 3;
     else if (op1 == '*' || op1 == '/') priority1 = 2;
     else if (op1 == '+' || op1 == '-') priority1 = 1;
-    if (op2 == '^') priority2 = 3;
+    if (op2 == '^'|| op1 == '!' || (op1 >= 'a' && op2 <= 'z')) priority2 = 3;
     else if (op2 == '*' || op2 == '/') priority2 = 2;
     else if (op2 == '+' || op2 == '-') priority2 = 1;
 
@@ -208,7 +243,7 @@ double CallFunction(string NameOfFunction, struct stack_node **OperandStackP)
     if (StringEqual(NameOfFunction, "exp")) return exp(strtod(Pop(OperandStackP), NULL));
     if (StringEqual(NameOfFunction, "ln")) return log(strtod(Pop(OperandStackP), NULL));
     if (StringEqual(NameOfFunction, "lg")) return log10(strtod(Pop(OperandStackP), NULL));
-    if (StringEqual(NameOfFunction, "fact")) return factorial((int) strtod(Pop(OperandStackP), NULL));
+    if (StringEqual(NameOfFunction, "!")) return factorial((int) strtod(Pop(OperandStackP), NULL));
 
     if (StringEqual(NameOfFunction, "^")) {
         op1 = strtod(Pop(OperandStackP), NULL);
@@ -236,6 +271,11 @@ double CallFunction(string NameOfFunction, struct stack_node **OperandStackP)
         /**/printf("+: %f#%f\n", op1, op2);
         return op2 - op1;
     }
+    if (StringEqual(NameOfFunction, "log")) {
+        op1 = strtod(Pop(OperandStackP), NULL);
+        op2 = strtod(Pop(OperandStackP), NULL);
+        return LOG(op2, op1);
+    }
 }
 
 void Output(string str)
@@ -259,4 +299,9 @@ double Abs(double x)
 {
 	if (x >= 0) return x;
 	else return -x;
+}
+
+double LOG(double base, double antilog)
+{
+    return log(antilog)/log(base);
 }
