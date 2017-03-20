@@ -102,7 +102,7 @@ void ConvertToPostfix(void)
             
             	InputOrigin = input;
             	while (TRUE) {
-                	if (i == STRINGSIZE-1) Error("The name of function is too long."); /*there may be a bug.*/
+                	if (i == STRINGSIZE-1) Error("The name of function is too long."); 
                 	*(++input) = getchar();
                 	i++;
                 	if (*input < 'a' || *input > 'z') {
@@ -151,7 +151,6 @@ void ConvertToPostfix(void)
         	
             *(input+1) = '\0';
             while (TRUE) {
-                printf("stacksize2: %d\n", StackSize(OperatorStack));
                 if (StackSize(OperatorStack) == 0) Error("Braces are not compatible\n");
                 temp = Pop(OperatorStackP);
                 if (*temp == '(') break;
@@ -167,13 +166,9 @@ void ConvertToPostfix(void)
             string temp;
 
             while (StackSize(OperatorStack)) {
-                printf("stacksize1:%d\n", StackSize(OperatorStack));
-                printf("top:%s\n", temp = Top(OperatorStackP));
                 if (*(temp = Top(OperatorStackP)) == '(') break;
-                printf("flag\n");
                 Enqueue(PostfixNotation, Pop(OperatorStackP));
             }
-            printf("stacksize:%d\n", StackSize(OperatorStack));
             if (*(temp = Top(OperatorStackP)) != '(') Error("Either the separator was misplaced or parentheses were mismatched");
             PreCh = input;
         }
@@ -221,7 +216,7 @@ void Process(void)
         if (*str >= '0' && *str <= '9') {
         	Push(OperandStackP, str);
         } 
-        else if (*str == '-' && *(str+1) >= '0' && *(str+1) <= '9') Push(OperandStackP, str); /*????*/
+        else if (*str == '-' && *(str+1) >= '0' && *(str+1) <= '9') Push(OperandStackP, str); 
         else Push(OperandStackP, RealToString(CallFunction(str, OperandStackP)));
     }
     if (StackSize(OperandStack) == 1) Output(Pop(OperandStackP));
@@ -268,7 +263,6 @@ double CallFunction(string NameOfFunction, struct stack_node **OperandStackP)
     if (StringEqual(NameOfFunction, "-")) {
         op1 = strtod(Pop(OperandStackP), NULL);
         op2 = strtod(Pop(OperandStackP), NULL);
-        /**/printf("+: %f#%f\n", op1, op2);
         return op2 - op1;
     }
     if (StringEqual(NameOfFunction, "log")) {
