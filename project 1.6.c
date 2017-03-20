@@ -56,7 +56,7 @@ void ConvertToPostfix(void)
             *(input+1) = '\0';
             while (StackSize(OperatorStack)) {
             	temp = Pop(OperatorStackP);
-                if ((*temp == '(') || (*temp == ')')) Error("Braces are not compatible\n"); /*could be improve*/
+                if ((*temp == '(') || (*temp == ')')) Error("Braces are not compatible.\n"); /*could be improve*/
                 Enqueue(PostfixNotation, temp);
             }
                 Enqueue(PostfixNotation, input);
@@ -127,13 +127,15 @@ void ConvertToPostfix(void)
                 input = "-1\0";
                 Enqueue(PostfixNotation, input);
                 ungetc('*', stdin);
+            } else if ((*input == '+') && (PreCh == NULL || *PreCh == '(')) {
+                FreeBlock(input);
             } else {
                 *(input+1) = '\0';
                 while (StackSize(OperatorStack)) {
                     char *temp;
 				
                     temp = Top(OperatorStackP);
-                    if ((*temp != '+') && (*temp != '-') && (*temp != '*') && (*temp != '/') && (*temp != '^') && (*temp != '!') && (*temp < 'a') && (*temp > 'z')) break;
+                    if ((*temp != '+') && (*temp != '-') && (*temp != '*') && (*temp != '/') && (*temp != '^') && (*temp != '!') && ((*temp < 'a') || (*temp > 'z'))) break;
                     if ((CheckAssociation(input) && CompareAssociationPriority(*temp, *input) >= 0) || (!CheckAssociation(input) && CompareAssociationPriority(*temp, *input) > 0)) Enqueue(PostfixNotation, Pop(OperatorStackP));  
 				    else break;
                 }
@@ -149,6 +151,7 @@ void ConvertToPostfix(void)
         	
             *(input+1) = '\0';
             while (TRUE) {
+                printf("stacksize2: %d\n", StackSize(OperatorStack));
                 if (StackSize(OperatorStack) == 0) Error("Braces are not compatible\n");
                 temp = Pop(OperatorStackP);
                 if (*temp == '(') break;
@@ -159,7 +162,21 @@ void ConvertToPostfix(void)
             	if (*temp >= 'a' && *temp <= 'z') Enqueue(PostfixNotation, Pop(OperatorStackP));
             }
             PreCh = input;
-        } else if (*input == ',') FreeBlock(input);
+        } else if (*input == ',') {
+            *(input+1) = '\0';
+            string temp;
+
+            while (StackSize(OperatorStack)) {
+                printf("stacksize1:%d\n", StackSize(OperatorStack));
+                printf("top:%s\n", temp = Top(OperatorStackP));
+                if (*(temp = Top(OperatorStackP)) == '(') break;
+                printf("flag\n");
+                Enqueue(PostfixNotation, Pop(OperatorStackP));
+            }
+            printf("stacksize:%d\n", StackSize(OperatorStack));
+            if (*(temp = Top(OperatorStackP)) != '(') Error("Either the separator was misplaced or parentheses were mismatched");
+            PreCh = input;
+        }
           else {
             Error("there is a illegal character.");
         }
