@@ -9,7 +9,6 @@
 #define MAXSIZE 100
 #define STRINGSIZE 10
 
-/*解决两个bug，使程序支持类似lg10的语句*/
 void Prompt(void);
 void ConvertToPostfix(void);
 void Process(void);
