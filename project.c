@@ -30,11 +30,24 @@ struct stack_node *OperandStack;
 
 main()
 {
-    /*Prompt();*/
+    Prompt();
     while (TRUE){
         ConvertToPostfix();
         Process();
     }
+}
+
+void Prompt(void){
+	printf("This is a CALCULATOR used to calculate the result of the formula.\n\n");
+	printf("OPERATORS supported :\n+, -, *, ^(power), /\n\n");
+	printf("FUNCTIONS supported:\nsin, cos, tan, arcsin, arccos, arctan, lg, ln, ! (factorial), exp, abs and sqrt.\n");
+	printf("NOTE: The program also supports the functions of several variables, for example log(base, antilog).\n\n");
+	printf("CONSTANTS supported:\nthe symbols pi, pI, Pi and PI represent the constant 3.14159 \nthe symbol e represents the constant 2.7128.\n");
+	printf("NOTE: When you use funtions such as sin, cos, tan, arcsin, arccos, arctan, lg and ln \n");
+	printf("to calculate the result of a complex arithmetic expression like 'sin(1+2)', please input '(' and ')'\n\In other situations, there is no need to input '(' and ')' for example lg10, sin2\n\n");
+	printf("When you use trigonometric functions, please input radians.\n\n");
+	printf("OTHER NOTES:\nThe blank charater (such as a TAB or a SPACE) will be neglected.\n\n");
+	printf("Let's start!\n\n\n");
 }
 
 void ConvertToPostfix(void)
