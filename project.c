@@ -30,11 +30,24 @@ struct stack_node *OperandStack;
 
 main()
 {
-    /*Prompt();*/
+    Prompt();
     while (TRUE){
         ConvertToPostfix();
         Process();
     }
+}
+
+void Prompt(void){
+	printf("This is a CALCULATOR used to calculate the result of the formula.\n\n");
+	printf("OPERATORS supported :\n+, -, *, ^(power), /\n\n");
+	printf("FUNCTIONS supported:\nsin, cos, tan, arcsin, arccos, arctan, lg, ln, ! (factorial), exp, abs and sqrt.\n");
+	printf("NOTE: The program also supports the functions of several variables, for example log(base, antilog).\n\n");
+	printf("CONSTANTS supported:\nthe symbols pi, pI, Pi and PI represent the constant 3.14159 \nthe symbol e represents the constant 2.7128.\n");
+	printf("NOTE: When you use funtions such as sin, cos, tan, arcsin, arccos, arctan, lg and ln \n");
+	printf("to calculate the result of a complex arithmetic expression like 'sin(1+2)', please input '(' and ')'\n\In other situations, there is no need to input '(' and ')' for example lg10, sin2\n\n");
+	printf("When you use trigonometric functions, please input radians.\n\n");
+	printf("OTHER NOTES:\nThe blank charater (such as a TAB or a SPACE) will be neglected.\n\n");
+	printf("Let's start!\n\n\n");
 }
 
 void ConvertToPostfix(void)
@@ -102,7 +115,7 @@ void ConvertToPostfix(void)
             
             	InputOrigin = input;
             	while (TRUE) {
-                	if (i == STRINGSIZE-1) Error("The name of function is too long."); /*there may be a bug.*/
+                	if (i == STRINGSIZE-1) Error("The name of function is too long."); 
                 	*(++input) = getchar();
                 	i++;
                 	if (*input < 'a' || *input > 'z') {
@@ -151,7 +164,6 @@ void ConvertToPostfix(void)
         	
             *(input+1) = '\0';
             while (TRUE) {
-                printf("stacksize2: %d\n", StackSize(OperatorStack));
                 if (StackSize(OperatorStack) == 0) Error("Braces are not compatible\n");
                 temp = Pop(OperatorStackP);
                 if (*temp == '(') break;
@@ -167,13 +179,9 @@ void ConvertToPostfix(void)
             string temp;
 
             while (StackSize(OperatorStack)) {
-                printf("stacksize1:%d\n", StackSize(OperatorStack));
-                printf("top:%s\n", temp = Top(OperatorStackP));
                 if (*(temp = Top(OperatorStackP)) == '(') break;
-                printf("flag\n");
                 Enqueue(PostfixNotation, Pop(OperatorStackP));
             }
-            printf("stacksize:%d\n", StackSize(OperatorStack));
             if (*(temp = Top(OperatorStackP)) != '(') Error("Either the separator was misplaced or parentheses were mismatched");
             PreCh = input;
         }
@@ -221,7 +229,7 @@ void Process(void)
         if (*str >= '0' && *str <= '9') {
         	Push(OperandStackP, str);
         } 
-        else if (*str == '-' && *(str+1) >= '0' && *(str+1) <= '9') Push(OperandStackP, str); /*????*/
+        else if (*str == '-' && *(str+1) >= '0' && *(str+1) <= '9') Push(OperandStackP, str); 
         else Push(OperandStackP, RealToString(CallFunction(str, OperandStackP)));
     }
     if (StackSize(OperandStack) == 1) Output(Pop(OperandStackP));
@@ -268,7 +276,6 @@ double CallFunction(string NameOfFunction, struct stack_node **OperandStackP)
     if (StringEqual(NameOfFunction, "-")) {
         op1 = strtod(Pop(OperandStackP), NULL);
         op2 = strtod(Pop(OperandStackP), NULL);
-        /**/printf("+: %f#%f\n", op1, op2);
         return op2 - op1;
     }
     if (StringEqual(NameOfFunction, "log")) {
