@@ -92,7 +92,7 @@ void ConvertToPostfix(void)
             *input = '\0';
 			Enqueue(PostfixNotation, InputOrigin);
             PreCh = input-1;
-        } else if (*input >= 'a' && *input <= 'z') {   /*If the token is a function token, then push it onto the stack.*/
+        } else if ((*input >= 'a' && *input <= 'z') || (*input >= 'A' && *input <= 'Z')) {   /*If the token is a function token, then push it onto the stack.*/
             if (*input == 'p' || *input == 'P') { /*There shouldn't be any function whose name starts with 'p' or 'P'*/
             	*(input+1) = getchar();
             	if (*(input+1) == 'i' || *(input+1) == 'I') {
@@ -297,6 +297,7 @@ double factorial(int n)
     int i;
     double result = 1;
 
+    if (n == 0) return 1;
     for (i = 1; i <= n; i++) result *= i;;
     return result;
 }
