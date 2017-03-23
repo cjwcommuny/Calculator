@@ -111,6 +111,7 @@ void ConvertToPostfix(void)
             	int i = 1;
             	char *InputOrigin;
             
+                if (*input == 'e') ungetc(*(input+1), stdin);
             	InputOrigin = input;
             	while (TRUE) {
                 	if (i == STRINGSIZE-1) Error("The name of function is too long."); 
