@@ -34,6 +34,7 @@ main()
         ConvertToPostfix();
         Process();
     }
+    getchar(); 
 }
 
 void Prompt(void){
@@ -72,6 +73,7 @@ void ConvertToPostfix(void)
                 Enqueue(PostfixNotation, temp);
             }
                 Enqueue(PostfixNotation, input);
+                printf("SPACE is ok\n");
 				break;
         } else if (*input == ' ' || *input == '\t') {
         	FreeBlock(input); /*Throw away the blank character.*/
@@ -135,10 +137,12 @@ void ConvertToPostfix(void)
             	PreCh = input - 1;
             }	
         } else if ((*input == '+') || (*input == '-') || (*input == '*') || (*input == '/') || (*input == '^') || (*input == '!')) { /*If the token is an operator.*/
-            if ((*input == '-') && (PreCh == NULL || *PreCh == '(')) {
+            printf("prech:%s\n", PreCh);
+			if ((*input == '-') && (PreCh == NULL || *PreCh == '(')) {
                 input = "-1\0";
                 Enqueue(PostfixNotation, input);
                 ungetc('*', stdin);
+                PreCh = input;
             } else if ((*input == '+') && (PreCh == NULL || *PreCh == '(')) {
                 FreeBlock(input);
             } else {
@@ -304,6 +308,7 @@ double factorial(int n)
 
 double Abs(double x)
 {
+	printf("abs\n");
 	if (x >= 0) return x;
 	else return -x;
 }
