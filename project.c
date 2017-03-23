@@ -1,10 +1,11 @@
-#include "stdio.h"
+#include <stdio.h>
 #include "math.h"
 #include "genlib.h"
 #include "simpio.h"
 #include "queue.h"
 #include "stack.h" 
-#include "stdlib.h"
+#include <stdlib.h>
+#include "mathematic.h"
 
 #define MAXSIZE 100
 #define STRINGSIZE 10
@@ -17,9 +18,6 @@ int CompareAssociationPriority(char op1, char op2);
 int NumOperand(string OperatorNameStr);
 double CallFunction(string NameOfFunction, struct stack_node **OperandStackP);
 void Output(string str);
-double factorial(int n);
-double Abs(double x);
-double LOG(double base, double antilog);
 
 queueADT PostfixNotation;
 struct stack_node **OperatorStackP;
@@ -247,11 +245,11 @@ double CallFunction(string NameOfFunction, struct stack_node **OperandStackP)
     if (StringEqual(NameOfFunction, "arcsin")) return asin(strtod(Pop(OperandStackP), NULL));
     if (StringEqual(NameOfFunction, "arccos")) return acos(strtod(Pop(OperandStackP), NULL));
     if (StringEqual(NameOfFunction, "arctan")) return atan(strtod(Pop(OperandStackP), NULL));
-    if (StringEqual(NameOfFunction, "sqrt")) return sqrt(strtod(Pop(OperandStackP), NULL));
+    if (StringEqual(NameOfFunction, "sqrt")) return SQRT(strtod(Pop(OperandStackP), NULL));
     if (StringEqual(NameOfFunction, "abs")) return Abs(strtod(Pop(OperandStackP), NULL));
     if (StringEqual(NameOfFunction, "exp")) return exp(strtod(Pop(OperandStackP), NULL));
-    if (StringEqual(NameOfFunction, "ln")) return log(strtod(Pop(OperandStackP), NULL));
-    if (StringEqual(NameOfFunction, "lg")) return log10(strtod(Pop(OperandStackP), NULL));
+    if (StringEqual(NameOfFunction, "ln")) return LN(strtod(Pop(OperandStackP), NULL));
+    if (StringEqual(NameOfFunction, "lg")) return LG(strtod(Pop(OperandStackP), NULL));
     if (StringEqual(NameOfFunction, "!")) return factorial((int) strtod(Pop(OperandStackP), NULL));
 
     if (StringEqual(NameOfFunction, "^")) {
@@ -266,6 +264,7 @@ double CallFunction(string NameOfFunction, struct stack_node **OperandStackP)
     }
     if (StringEqual(NameOfFunction, "/")) {
         op1 = strtod(Pop(OperandStackP), NULL);
+        if (op1 == 0) Error("The denominator of the numerator cannot have the value zero.\n");
         op2 = strtod(Pop(OperandStackP), NULL);
         return op2 / op1;
     }
@@ -292,25 +291,4 @@ void Output(string str)
     FreeBlock(OperandStack);
     FreeBlock(OperandStackP);
     FreeBlock(PostfixNotation);
-}
-
-double factorial(int n)
-{
-    int i;
-    double result = 1;
-
-    if (n == 0) return 1;
-    for (i = 1; i <= n; i++) result *= i;;
-    return result;
-}
-
-double Abs(double x)
-{
-	if (x >= 0) return x;
-	else return -x;
-}
-
-double LOG(double base, double antilog)
-{
-    return log(antilog)/log(base);
 }
