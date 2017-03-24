@@ -2,7 +2,7 @@
 #ifndef _mathematic_h
 #define _mathematic_h
 
-double factorial(int n);
+double factorial(double x);
 double Abs(double x);
 double LOG(double base, double antilog);
 double SQRT(double x);

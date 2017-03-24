@@ -1,15 +1,17 @@
 #include "stdio.h"
 #include "math.h"
 #include "strlib.h" 
+#include "mathematic.h"
 
-double factorial(double n)
+double factorial(double x)
 {
-    int i;
+    int i, temp;
     double result = 1;
 
-    if ((n - (int) n) || n < 0) Error("The function factorial needs a positive integer.\n"); /*check whether n is a integer.*/
-    if (n == 0) return 1;
-    for (i = 1; i <= n; i++) result *= i;
+    if ((x - (int) x) || x < 0) Error("The function factorial needs a positive integer.\n"); /*check whether n is a integer.*/
+    temp = (int) x;
+	if (temp == 0) return 1;
+    for (i = 1; i <= temp; i++) result *= i;
     return result;
 }
 

@@ -42,7 +42,7 @@ void Prompt(void){
 	printf("NOTE: The program also supports the functions of several variables, for example log(base, antilog).\n\n");
 	printf("CONSTANTS supported:\nthe symbols pi, pI, Pi and PI represent the constant 3.14159 \nthe symbol e represents the constant 2.7128.\n");
 	printf("NOTE: When you use funtions such as sin, cos, tan, arcsin, arccos, arctan, lg and ln \n");
-	printf("to calculate the result of a complex arithmetic expression like 'sin(1+2)', please input '(' and ')'\n\In other situations, there is no need to input '(' and ')' for example lg10, sin2\n\n");
+	printf("to calculate the result of a complex arithmetic expression like 'sin(1+2)', please input '(' and ')'\nIn other situations, there is no need to input '(' and ')' for example lg10, sin2\n\n");
 	printf("When you use trigonometric functions, please input radians.\n\n");
 	printf("OTHER NOTES:\nThe blank charater (such as a TAB or a SPACE) will be neglected.\n\n");
 	printf("Let's start!\n\n\n");
@@ -239,7 +239,7 @@ void Process(void)
 double CallFunction(string NameOfFunction, struct stack_node **OperandStackP)
 {
     double op1, op2;
-
+	
     if (StringEqual(NameOfFunction, "sin")) return sin(strtod(Pop(OperandStackP), NULL)); /*strtod() is a function to convert string to double.*/
     if (StringEqual(NameOfFunction, "cos")) return cos(strtod(Pop(OperandStackP), NULL));
     if (StringEqual(NameOfFunction, "tan")) return tan(strtod(Pop(OperandStackP), NULL));
@@ -251,7 +251,7 @@ double CallFunction(string NameOfFunction, struct stack_node **OperandStackP)
     if (StringEqual(NameOfFunction, "exp")) return exp(strtod(Pop(OperandStackP), NULL));
     if (StringEqual(NameOfFunction, "ln")) return LN(strtod(Pop(OperandStackP), NULL));
     if (StringEqual(NameOfFunction, "lg")) return LG(strtod(Pop(OperandStackP), NULL));
-    if (StringEqual(NameOfFunction, "!")) return factorial((int) strtod(Pop(OperandStackP), NULL));
+    if (StringEqual(NameOfFunction, "!")) return factorial(strtod(Pop(OperandStackP), NULL));
 
     if (StringEqual(NameOfFunction, "^")) {
         op1 = strtod(Pop(OperandStackP), NULL);
