@@ -6,12 +6,16 @@
 #include "stack.h" 
 #include <stdlib.h>
 #include "mathematic.h"
+#include <setjmp.h>
 
 #define MAXSIZE 100
 #define STRINGSIZE 10
+#define ERROR 0
+#define SUCCESS 1
+
 
 void Prompt(void);
-void ConvertToPostfix(void);
+int ConvertToPostfix(void);
 void Process(void);
 bool CheckAssociation(string op);
 int CompareAssociationPriority(char op1, char op2);
@@ -24,13 +28,14 @@ struct stack_node **OperatorStackP;
 struct stack_node *OperatorStack;
 struct stack_node **OperandStackP;
 struct stack_node *OperandStack;
+jmp_buf JumpBuffer;
 
 main()
 {
     Prompt();
     while (TRUE){
-        ConvertToPostfix();
-        Process();
+        if (ConvertToPostfix()) Process();
+        setjmp(JumpBuffer);
     }
     getchar(); 
 }
@@ -48,7 +53,7 @@ void Prompt(void){
 	printf("Let's start!\n\n\n");
 }
 
-void ConvertToPostfix(void)
+int ConvertToPostfix(void)
 {
     char *input, *PreCh = NULL;
 
@@ -67,7 +72,10 @@ void ConvertToPostfix(void)
             *(input+1) = '\0';
             while (StackSize(OperatorStack)) {
             	temp = Pop(OperatorStackP);
-                if ((*temp == '(') || (*temp == ')')) Error("Braces are not compatible.\n"); /*could be improve*/
+                if ((*temp == '(') || (*temp == ')')) {
+                    printf("Braces are not compatible.\n"); /*could be improve*/
+                    return ERROR;
+                }
                 Enqueue(PostfixNotation, temp);
             }
                 Enqueue(PostfixNotation, input);
@@ -80,7 +88,10 @@ void ConvertToPostfix(void)
             
             InputOrigin = input;
             while (TRUE) {
-                if (i == STRINGSIZE-1) Error("A number is too long.");
+                if (i == STRINGSIZE-1) {
+                    printf("A number is too long.\n");
+                    return ERROR;
+                }
                 *(++input) = getchar();
                 if ((*input < '0' || *input > '9') && (*input != '.')) {
                     ungetc(*input, stdin);
@@ -96,7 +107,10 @@ void ConvertToPostfix(void)
             	*(input+1) = getchar();
             	if (*(input+1) == 'i' || *(input+1) == 'I') {
             		*(input + 2) = getchar();
-            		if (*(input + 2) >= 'a' && *(input + 2) <= 'z') Error("illeagal function name or PI.\n"); /*?????*/
+            		if (*(input + 2) >= 'a' && *(input + 2) <= 'z') {
+                        printf("illeagal function name or PI.\n");
+                        return ERROR;
+                    }
             		else {
             			ungetc(*(input+2), stdin);
             			input = "3.14159\0";
@@ -114,7 +128,10 @@ void ConvertToPostfix(void)
                 if (*input == 'e') ungetc(*(input+1), stdin);
             	InputOrigin = input;
             	while (TRUE) {
-                	if (i == STRINGSIZE-1) Error("The name of function is too long."); 
+                	if (i == STRINGSIZE-1) {
+                        printf("The name of function is too long.\n"); 
+                        return ERROR;
+                    }
                 	*(++input) = getchar();
                 	i++;
                 	if (*input < 'a' || *input > 'z') {
@@ -164,7 +181,10 @@ void ConvertToPostfix(void)
         	
             *(input+1) = '\0';
             while (TRUE) {
-                if (StackSize(OperatorStack) == 0) Error("Braces are not compatible\n");
+                if (StackSize(OperatorStack) == 0) {
+                    printf("Braces are not compatible\n");
+                    return ERROR;
+                }
                 temp = Pop(OperatorStackP);
                 if (*temp == '(') break;
                 Enqueue(PostfixNotation, temp);
@@ -182,15 +202,18 @@ void ConvertToPostfix(void)
                 if (*(temp = Top(OperatorStackP)) == '(') break;
                 Enqueue(PostfixNotation, Pop(OperatorStackP));
             }
-            if (*(temp = Top(OperatorStackP)) != '(') Error("Either the separator was misplaced or parentheses were mismatched");
+            if (*(temp = Top(OperatorStackP)) != '(') {
+                printf("Either the separator was misplaced or parentheses were mismatched.\n");
+                return ERROR;
+            }
             PreCh = input;
         }
           else {
-            Error("there is a illegal character.");
+            printf("there is a illegal character.\n");
+            return ERROR;
         }
     }
-    FreeBlock(OperatorStack);
-    FreeBlock(OperatorStackP);
+    return SUCCESS;
 }
 
 bool CheckAssociation(string op)
@@ -233,7 +256,7 @@ void Process(void)
         else Push(OperandStackP, RealToString(CallFunction(str, OperandStackP)));
     }
     if (StackSize(OperandStack) == 1) Output(Pop(OperandStackP));
-    else Error("Too much operands.");
+    else printf("Too much operands.\n");
 }
 
 double CallFunction(string NameOfFunction, struct stack_node **OperandStackP)
@@ -265,7 +288,10 @@ double CallFunction(string NameOfFunction, struct stack_node **OperandStackP)
     }
     if (StringEqual(NameOfFunction, "/")) {
         op1 = strtod(Pop(OperandStackP), NULL);
-        if (op1 == 0) Error("The denominator of the numerator cannot have the value zero.\n");
+        if (op1 == 0) {
+            printf("The denominator of the numerator cannot have the value zero.\n");
+            longjmp(JumpBuffer, 1);
+        }
         op2 = strtod(Pop(OperandStackP), NULL);
         return op2 / op1;
     }
