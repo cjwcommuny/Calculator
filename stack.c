@@ -4,8 +4,9 @@
 #include "strlib.h" 
 #include "simpio.h" 
 #include "stack.h"
+#include <setjmp.h>
 
-
+extern jmp_buf JumpBuffer;
 
 void NewStack(struct stack_node **rootP)
 {
@@ -17,7 +18,10 @@ STACKTYPE Pop(struct stack_node **rootP)
     STACKTYPE temp;
     struct stack_node *tempP;
 
-    if (StackSize(*rootP) == 0) Error("no element in the stack.\n");
+    if (StackSize(*rootP) == 0) {
+        printf("no element in the stack.\n");
+        longjmp(JumpBuffer, 1);
+    }
     temp = (*rootP)->value;
     tempP = (*rootP)->next;
     FreeBlock(*rootP);
@@ -37,7 +41,10 @@ void Push(struct stack_node **rootP, STACKTYPE input)
 
 STACKTYPE Top(struct stack_node **rootP)
 {
-	if (StackSize(*rootP) == 0) Error("No element.\n");
+	if (StackSize(*rootP) == 0) {
+        printf("No element.\n");
+        longjmp(JumpBuffer, 1);
+    }
     return (*rootP)->value;
 }
 
