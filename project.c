@@ -34,8 +34,9 @@ main()
 {
     Prompt();
     while (TRUE){
-        if (ConvertToPostfix()) Process();
         setjmp(JumpBuffer);
+        fflush(stdin);
+        if (ConvertToPostfix()) Process();
     }
     getchar(); 
 }
@@ -65,10 +66,14 @@ int ConvertToPostfix(void)
     while (TRUE) {                          
         input = GetBlock(sizeof(char)*STRINGSIZE);
         *input = getchar();
-        if (*input == '\n') {               /*when there are no more tokens to read.*/
+        if (*input == '\n') {             /*when there are no more tokens to read.*/
             char *temp;
             int i;
             
+            if (PreCh == NULL) {
+                printf("Input Nothing.\n");
+                return ERROR;
+            }
             *(input+1) = '\0';
             while (StackSize(OperatorStack)) {
             	temp = Pop(OperatorStackP);
@@ -108,7 +113,7 @@ int ConvertToPostfix(void)
             	if (*(input+1) == 'i' || *(input+1) == 'I') {
             		*(input + 2) = getchar();
             		if (*(input + 2) >= 'a' && *(input + 2) <= 'z') {
-                        printf("illeagal function name or PI.\n");
+                        printf("illegal function name or PI.\n");
                         return ERROR;
                     }
             		else {
@@ -117,10 +122,12 @@ int ConvertToPostfix(void)
             			Enqueue(PostfixNotation, input);
             		}
             	}
+                PreCh = input;
             } else if (*input == 'e' && ((*(input+1) = getchar()) < 'a' || *(input+1) > 'z')) {
             	ungetc(*(input+1), stdin);
-            	input = "2.71281\0";
+            	input = "2.71828\0";
             	Enqueue(PostfixNotation, input);
+                PreCh = input;
 			} else {
             	int i = 1;
             	char *InputOrigin;
@@ -264,29 +271,26 @@ double CallFunction(string NameOfFunction, struct stack_node **OperandStackP)
     double op1, op2;
 	
     if (StringEqual(NameOfFunction, "sin")) return sin(strtod(Pop(OperandStackP), NULL)); /*strtod() is a function to convert string to double.*/
-    if (StringEqual(NameOfFunction, "cos")) return cos(strtod(Pop(OperandStackP), NULL));
-    if (StringEqual(NameOfFunction, "tan")) return tan(strtod(Pop(OperandStackP), NULL));
-    if (StringEqual(NameOfFunction, "arcsin")) return asin(strtod(Pop(OperandStackP), NULL));
-    if (StringEqual(NameOfFunction, "arccos")) return acos(strtod(Pop(OperandStackP), NULL));
-    if (StringEqual(NameOfFunction, "arctan")) return atan(strtod(Pop(OperandStackP), NULL));
-    if (StringEqual(NameOfFunction, "sqrt")) return SQRT(strtod(Pop(OperandStackP), NULL));
-    if (StringEqual(NameOfFunction, "abs")) return Abs(strtod(Pop(OperandStackP), NULL));
-    if (StringEqual(NameOfFunction, "exp")) return exp(strtod(Pop(OperandStackP), NULL));
-    if (StringEqual(NameOfFunction, "ln")) return LN(strtod(Pop(OperandStackP), NULL));
-    if (StringEqual(NameOfFunction, "lg")) return LG(strtod(Pop(OperandStackP), NULL));
-    if (StringEqual(NameOfFunction, "!")) return factorial(strtod(Pop(OperandStackP), NULL));
-
-    if (StringEqual(NameOfFunction, "^")) {
+    else if (StringEqual(NameOfFunction, "cos")) return cos(strtod(Pop(OperandStackP), NULL));
+    else if (StringEqual(NameOfFunction, "tan")) return tan(strtod(Pop(OperandStackP), NULL));
+    else if (StringEqual(NameOfFunction, "arcsin")) return asin(strtod(Pop(OperandStackP), NULL));
+    else if (StringEqual(NameOfFunction, "arccos")) return acos(strtod(Pop(OperandStackP), NULL));
+    else if (StringEqual(NameOfFunction, "arctan")) return atan(strtod(Pop(OperandStackP), NULL));
+    else if (StringEqual(NameOfFunction, "sqrt")) return SQRT(strtod(Pop(OperandStackP), NULL));
+    else if (StringEqual(NameOfFunction, "abs")) return Abs(strtod(Pop(OperandStackP), NULL));
+    else if (StringEqual(NameOfFunction, "exp")) return exp(strtod(Pop(OperandStackP), NULL));
+    else if (StringEqual(NameOfFunction, "ln")) return LN(strtod(Pop(OperandStackP), NULL));
+    else if (StringEqual(NameOfFunction, "lg")) return LG(strtod(Pop(OperandStackP), NULL));
+    else if (StringEqual(NameOfFunction, "!")) return factorial(strtod(Pop(OperandStackP), NULL));
+    else if (StringEqual(NameOfFunction, "^")) {
         op1 = strtod(Pop(OperandStackP), NULL);
         op2 = strtod(Pop(OperandStackP), NULL);
         return pow(op2, op1);
-    }
-    if (StringEqual(NameOfFunction, "*")) {
+    } else if (StringEqual(NameOfFunction, "*")) {
         op1 = strtod(Pop(OperandStackP), NULL);
         op2 = strtod(Pop(OperandStackP), NULL);
         return op1 * op2;
-    }
-    if (StringEqual(NameOfFunction, "/")) {
+    } else if (StringEqual(NameOfFunction, "/")) {
         op1 = strtod(Pop(OperandStackP), NULL);
         if (op1 == 0) {
             printf("The denominator of the numerator cannot have the value zero.\n");
@@ -294,21 +298,21 @@ double CallFunction(string NameOfFunction, struct stack_node **OperandStackP)
         }
         op2 = strtod(Pop(OperandStackP), NULL);
         return op2 / op1;
-    }
-    if (StringEqual(NameOfFunction, "+")) {
+    } else if (StringEqual(NameOfFunction, "+")) {
         op1 = strtod(Pop(OperandStackP), NULL);
         op2 = strtod(Pop(OperandStackP), NULL);
         return op1 + op2;
-    }
-    if (StringEqual(NameOfFunction, "-")) {
+    } else if (StringEqual(NameOfFunction, "-")) {
         op1 = strtod(Pop(OperandStackP), NULL);
         op2 = strtod(Pop(OperandStackP), NULL);
         return op2 - op1;
-    }
-    if (StringEqual(NameOfFunction, "log")) {
+    } else if (StringEqual(NameOfFunction, "log")) {
         op1 = strtod(Pop(OperandStackP), NULL);
         op2 = strtod(Pop(OperandStackP), NULL);
         return LOG(op2, op1);
+    } else {
+        printf("illegal function name.\n");
+        longjmp(JumpBuffer, 1);
     }
 }
 
