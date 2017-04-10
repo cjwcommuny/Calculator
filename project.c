@@ -63,7 +63,7 @@ int ConvertToPostfix(void)
     PostfixNotation = NewQueue();
     printf("Please input the arithmetic expression:\n");
 
-    while (TRUE) {                          
+    while (TRUE) {
         input = GetBlock(sizeof(char)*STRINGSIZE);
         *input = getchar();
         if (*input == '\n') {             /*when there are no more tokens to read.*/
