@@ -39,7 +39,8 @@ struct calculator_frame {
     char *button_text[BUTTON_ROW][BUTTON_COLUMN];
     struct Point output_frame[6];
 };
-
+struct Point *CurrentPoint;
+struct Point *PreviousPoint;
 struct window_size *WindowSize;
 struct calculator_frame *calculatorP;
 struct calculator_frame calculatorTemp = {
@@ -87,6 +88,14 @@ void Main()
     SetWindowTitle("Calculaor");
     InitGraphics();
     InitConsole();
+
+    CurrentPoint = GetBlock(sizeof(struct Point));
+    PreviousPoint = GetBlock(sizeof(struct Point));
+    PreviousPoint->x = 0;
+    PreviousPoint->y = 0;
+    CurrentPoint->x = 0;
+    CurrentPoint->y = 0;
+
     InitCalculator();
     DrawCalculatorFrame();
     registerCharEvent(CharEventProcess);
@@ -118,63 +127,6 @@ void InitCalculator(void)
     //int i;
 
     calculatorP = &calculatorTemp;
-    //printf("TEST\n");
-    /*calculatorP->button_text[0][0] = "MC";
-    calculatorP->button_text[0][1] = "MR";
-    calculatorP->button_text[0][2] = "M+";
-    calculatorP->button_text[0][3] = "M-";
-    calculatorP->button_text[0][4] = "MS";
-    calculatorP->button_text[1][0]
-    calculatorP->button_text[1][1]
-    calculatorP->button_text[1][2]
-    calculatorP->button_text[1][3]
-    calculatorP->button_text[1][4]
-    calculatorP->button_text[2][0]
-    calculatorP->button_text[2][1]
-    calculatorP->button_text[2][2]
-    calculatorP->button_text[2][3]
-    calculatorP->button_text[2][4]
-    calculatorP->button_text[3][0]
-    calculatorP->button_text[3][1]
-    calculatorP->button_text[3][2]
-    calculatorP->button_text[3][3]
-    calculatorP->button_text[3][4]
-    calculatorP->button_text[4][0]
-    calculatorP->button_text[4][1]
-    calculatorP->button_text[4][2]
-    calculatorP->button_text[4][3]
-    calculatorP->button_text[4][4]
-    calculatorP->button_text[5][0]
-    calculatorP->button_text[5]
-    calculatorP->button_text[5]
-    calculatorP->button_text[5]
-    calculatorP->button_text[5]
-    calculatorP->button_text[6]
-    calculatorP->button_text[6]
-    calculatorP->button_text[6]
-    calculatorP->button_text[6]
-    calculatorP->button_text[6]
-    calculatorP->button_text[7]
-    calculatorP->button_text[7]
-    calculatorP->button_text[7]
-    calculatorP->button_text[7]
-    calculatorP->button_text[7]
-    calculatorP->button_text[8]
-    calculatorP->button_text[8]
-    calculatorP->button_text[8]
-    calculatorP->button_text[8]
-    calculatorP->button_text[8]*/
-    /*{
-        "MC", "MR", "M+", "M-", "MS",
-        "CE", "C", "", "",
-        "sin", "cos", "tan", "abs", "!",
-        "arcsin", "arccos", "arctan", "exp", "log",
-        "sqrt", "^", "lg", "ln", "/",
-        "Pi", "7", "8", "9", "*",
-        "e", "4", "5", "6", "-",
-        "-", "1", "2", "3", "+",
-        "(", ")", "0", ".", "="
-    };*/
 }
 
 void DrawCalculatorFrame(void)
@@ -266,7 +218,22 @@ void PrintTextCenter(char *text, struct Point point)
 
 void MouseEventProcess(int x, int y, int button, int event)
 {
+    PreviousPoint->x = CurrentPoint->x;
+    PreviousPoint->y = CurrentPoint->y;
+    CurrentPoint->x = ScaleXInches(x);
+    CurrentPoint->y = GetWindowHeight() - ScaleXInches(y);
 
+    switch (event) {
+        case BUTTON_DOWN:
+            switch (button) {
+                case LEFT_BUTTON:
+                    
+                    break;
+            }
+            break;
+        case BUTTON_UP:
+            break;
+    }
 }
 
 void KeyboardEventProcess(int key,int event)
