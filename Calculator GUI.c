@@ -13,11 +13,12 @@
 //#define BUTTON_SHAPE() 
 #define BUTTON_COLUMN 5
 #define BUTTON_ROW 9
-#define MOVE_COLOR Red
-#define SELECT_COLOR Black
+#define MOVE_COLOR "Red"
+#define SELECT_COLOR "Black"
 #define CHECK_WINDOW_SIZE 1
 #define CHECK_WINDOW_SIZE_TIME 200
 #define ERROR_LIMIT 0.02
+#define BUFFER_SIZE 1000
 
 struct Point {
     double x;
@@ -34,6 +35,9 @@ struct window_size {
     double height;
 };
 
+bool isMouseDown = FALSE;
+bool isButtonUp = FALSE;
+int formular_buffer[BUFFER_SIZE];
 struct calculator_frame {
     //struct button *button_frame[BUTTON_ROW][BUTTON_COLUMN];
     char *button_text[BUTTON_ROW][BUTTON_COLUMN];
@@ -57,7 +61,10 @@ struct calculator_frame calculatorTemp = {
 //struct button *button_collection[BUTTON_ROW][BUTTON_COLUMN];
 double OutputHeight;
 double ButtonHeight, ButtonWidth;
+double gap_height, gap_width;
+double window_width, window_height;
 int testcount = 0;
+int ColorResponseCount = 0;
 /*char *ButtonText[] = {
         "MC", "MR", "M+", "M-", "MS",
         "CE", "C", "", "",
@@ -77,11 +84,17 @@ void TimerEventProcess(int timerID);
 void DrawCalculatorFrame(void);
 void InitCalculator(void);
 void RefreshDisplay(void);
+void RefreshPartDisplay(double x, double y, double width, double height);
 void DrawOutputFrame(void);
 void DrawRectangle(double x, double y, double width, double height);
 void PrintText(void);
 void PrintTextCenter(char *text, struct Point);
-
+void InitBuffer(void);
+void CheckAndOperate(void);
+bool CheckPosition(double x, double y, int i, int j);
+void ColorResponse(int i, int j, char *color);
+void FillPart(double x, double y, double width, double height, string color);
+void RefreshPre(void);
 
 void Main()
 {
@@ -95,6 +108,7 @@ void Main()
     PreviousPoint->y = 0;
     CurrentPoint->x = 0;
     CurrentPoint->y = 0;
+    InitBuffer();
 
     InitCalculator();
     DrawCalculatorFrame();
@@ -106,6 +120,15 @@ void Main()
     //startTimer(CHECK_WINDOW_SIZE, CHECK_WINDOW_SIZE_TIME);
 }
 
+void InitBuffer(void)
+{
+    int i;
+
+    for (i = 0; i < BUFFER_SIZE; ++i) {
+        formular_buffer[i] = '\n';
+    }
+}
+
 void RefreshDisplay(void)
 {
     SetEraseMode(TRUE);
@@ -114,6 +137,28 @@ void RefreshDisplay(void)
     EndFilledRegion();
     //MovePen(CurrentPoint->x, CurrentPoint->y);
     SetEraseMode(FALSE);
+}
+
+void RefreshPartDisplay(double x, double y, double width, double height)
+{
+    SetEraseMode(TRUE);
+    StartFilledRegion(1);
+    DrawRectangle(x, y, width, height);
+    EndFilledRegion();
+    SetEraseMode(FALSE);
+}
+
+void FillPart(double x, double y, double width, double height, string color)
+{
+    char *PreColor;
+
+    PreColor = GetPenColor();
+    SetPenColor(color);
+    StartFilledRegion(1);
+    DrawRectangle(x, y, width, height);
+    EndFilledRegion();
+
+    SetPenColor(PreColor);
 }
 
 void InitCalculator(void)
@@ -131,8 +176,8 @@ void InitCalculator(void)
 
 void DrawCalculatorFrame(void)
 {
-    double window_width, window_height;
-    double gap_width, gap_height;
+    //double window_width, window_height;
+    //double gap_width, gap_height;
     //double ButtonWidth, ButtonHeight;
 
     //printf("TEST:here\n");
@@ -223,15 +268,22 @@ void MouseEventProcess(int x, int y, int button, int event)
     CurrentPoint->x = ScaleXInches(x);
     CurrentPoint->y = GetWindowHeight() - ScaleXInches(y);
 
+    RefreshPre();
+    CheckAndOperate();
     switch (event) {
         case BUTTON_DOWN:
+            isMouseDown = TRUE;
             switch (button) {
                 case LEFT_BUTTON:
-                    
+                    CheckAndOperate();
                     break;
             }
             break;
         case BUTTON_UP:
+            isButtonUp = TRUE;
+            CheckAndOperate();
+            isMouseDown = FALSE;
+            isButtonUp = FALSE;
             break;
     }
 }
@@ -248,7 +300,7 @@ void CharEventProcess(char c)
 
 void TimerEventProcess(int timerID)
 {
-    switch (timerID) {
+    /*switch (timerID) {
         case CHECK_WINDOW_SIZE: {
             double x, y;
 
@@ -263,7 +315,7 @@ void TimerEventProcess(int timerID)
             WindowSize->height = y;
             break;
         }
-    }
+    }*/
 }
 
 void DrawRectangle(double x, double y, double width, double height)
@@ -273,4 +325,83 @@ void DrawRectangle(double x, double y, double width, double height)
     DrawLine(0, height);
     DrawLine(-width, 0);
     DrawLine(0, -height);
+}
+
+void CheckAndOperate(void)
+{
+    //double window_height = GetWindowHeight();
+    //double window_width = GetWindowWidth();
+    int i, j;
+    struct Point TextPosition;
+
+    if (ColorResponseCount >= 1) return;
+    ColorResponseCount++;
+    if (CurrentPoint->y > window_height - 2 * gap_height - 2 * OutputHeight) return;
+
+    for (i = 0; i < BUTTON_ROW; ++i) {
+        for (j = 0; j < BUTTON_COLUMN; ++j) {
+            if (CheckPosition(CurrentPoint->x, CurrentPoint->y, i, j)) {
+                if (isMouseDown) {
+                    ColorResponse(i, j, SELECT_COLOR);
+                } else if (!isButtonUp) {
+                    ColorResponse(i, j, MOVE_COLOR);
+                } else {
+                    TextPosition.x = (j+0.5)*ButtonWidth;
+                    TextPosition.y = (BUTTON_ROW-i)*ButtonHeight;
+                    RefreshPartDisplay(i * ButtonWidth, 
+                                       window_height - 2 * gap_height - 2 * OutputHeight - (i+1) * ButtonHeight, 
+                                       ButtonWidth, ButtonHeight);
+                    PrintTextCenter(calculatorP->button_text[i][j], TextPosition);
+                }
+                //operate(i, j);
+                return;
+            }
+        }
+    }
+}
+
+bool CheckPosition(double x, double y, int i, int j)
+{
+    //double window_height 
+    if (x >= i * ButtonWidth && 
+        x <= (i+1) * ButtonWidth && 
+        y >= window_height - 2 * gap_height - 2 * OutputHeight - (i+1) * ButtonHeight && 
+        y <= window_height - 2 * gap_height - 2 * OutputHeight - i * ButtonHeight) 
+        return TRUE;
+    return FALSE;
+}
+
+void ColorResponse(int i, int j, char *color)
+{
+    struct Point TextPosition;
+
+    TextPosition.x = (j+0.5)*ButtonWidth;
+    TextPosition.y = (BUTTON_ROW-i)*ButtonHeight;
+    RefreshPartDisplay(i * ButtonWidth, 
+                       window_height - 2 * gap_height - 2 * OutputHeight - (i+1) * ButtonHeight, 
+                       ButtonWidth, 
+                       ButtonHeight);
+    FillPart(i * ButtonWidth, 
+             window_height - 2 * gap_height - 2 * OutputHeight - (i+1) * ButtonHeight, 
+             ButtonWidth, 
+             ButtonHeight, 
+             color);
+    PrintTextCenter(calculatorP->button_text[i][j], TextPosition);
+}
+
+void RefreshPre(void)
+{
+    int i, j;
+
+    for (i = 0; i < BUTTON_ROW; ++i) {
+        for (j = 0; j < BUTTON_COLUMN; ++j) {
+            if (CheckPosition(PreviousPoint->x, PreviousPoint->y, i, j) && 
+                !CheckPosition(CurrentPoint->x, CurrentPoint->y, i, j)) {
+                RefreshPartDisplay(i * ButtonWidth, 
+                         window_height - 2 * gap_height - 2 * OutputHeight - (i+1) * ButtonHeight, 
+                         ButtonWidth, 
+                         ButtonHeight);
+            }
+        }
+    }
 }
