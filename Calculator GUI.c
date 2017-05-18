@@ -19,6 +19,7 @@
 #define CHECK_WINDOW_SIZE_TIME 200
 #define ERROR_LIMIT 0.02
 #define BUFFER_SIZE 1000
+#define MODIFY 0.02
 
 struct Point {
     double x;
@@ -150,10 +151,10 @@ void RefreshPartDisplay(double x, double y, double width, double height)
 {
     SetEraseMode(TRUE);
     StartFilledRegion(1);
-    DrawRectangle(x, y, width, height);
+    DrawRectangle(x-MODIFY, y-MODIFY, width+2*MODIFY, height+2*MODIFY);
     EndFilledRegion();
     SetEraseMode(FALSE);
-    DrawVoidRectangle(x, y, width, height);
+    //DrawVoidRectangle(x, y, width, height);
 }
 
 void FillPart(double x, double y, double width, double height, string color)
