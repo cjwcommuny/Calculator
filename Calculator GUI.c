@@ -38,7 +38,8 @@ struct window_size {
 
 bool isMouseDown = FALSE;
 bool isButtonUp = FALSE;
-int formular_buffer[BUFFER_SIZE];
+char *formula_buffer;
+int buffer_index;
 struct calculator_frame {
     //struct button *button_frame[BUTTON_ROW][BUTTON_COLUMN];
     char *button_text[BUTTON_ROW][BUTTON_COLUMN];
@@ -99,6 +100,8 @@ void FillPart(double x, double y, double width, double height, string color);
 void RefreshPre(void);
 void test(void);
 void DrawVoidRectangle(double x, double y, double width, double height);
+void Formformula(int i, int j);
+void show_formula(void);
 
 void Main()
 {
@@ -116,6 +119,7 @@ void Main()
 
     InitCalculator();
     DrawCalculatorFrame();
+    //printf("#%s#\n\n", formula_buffer);
     registerCharEvent(CharEventProcess);
 	registerMouseEvent(MouseEventProcess);
 	//registerTimerEvent(TimerEventProcess);
@@ -128,12 +132,14 @@ void test(void)
 {
 
 }
+
 void InitBuffer(void)
 {
     int i;
 
+    formula_buffer = GetBlock(BUFFER_SIZE * sizeof(char));
     for (i = 0; i < BUFFER_SIZE; ++i) {
-        formular_buffer[i] = '\n';
+        formula_buffer[i] = '\0';
     }
 }
 
@@ -277,8 +283,7 @@ void MouseEventProcess(int x, int y, int button, int event)
     CurrentPoint->x = ScaleXInches(x);
     CurrentPoint->y = GetWindowHeight() - ScaleXInches(y);
     //printf("mouse\n");
-    RefreshPre();
-    CheckAndOperate();
+    
     switch (event) {
         case BUTTON_DOWN:
             isMouseDown = TRUE;
@@ -296,6 +301,10 @@ void MouseEventProcess(int x, int y, int button, int event)
             CheckAndOperate();
             
             isButtonUp = FALSE;
+            break;
+        default:
+            RefreshPre();
+            CheckAndOperate();
             break;
     }
 }
@@ -364,16 +373,19 @@ void CheckAndOperate(void)
                 //printf("here1\n");
                 if (isMouseDown) {
                     //printf("here\n");
+                    Formformula(i, j);
+                    show_formula();
                     ColorResponse(i, j, SELECT_COLOR);
                 } else if (isButtonUp) {
                     //printf("test\n");
                     TextPosition.x = (j+0.5)*ButtonWidth;
                     TextPosition.y = (BUTTON_ROW-i-0.5)*ButtonHeight;
                     RefreshPartDisplay(j * ButtonWidth, 
-                                       window_height - 2 * gap_height - 2 * OutputHeight - (i+1) * ButtonHeight, 
+                                       window_height - 2 * gap_height - 2 * OutputHeight - (i+1) * ButtonHeight,
                                        ButtonWidth, ButtonHeight);
                     ColorResponse(i, j, MOVE_COLOR);
                     PrintTextCenter(calculatorP->button_text[i][j], TextPosition);
+                    printf("1:#%s#\n", formula_buffer);
                 } else {
                     //printf("%d, %d\n", i, j);
                     //printf("here2\n");
@@ -456,4 +468,44 @@ void DrawVoidRectangle(double x, double y, double width, double height)
     SetEraseMode(1);
     DrawRectangle(x, y, width, height);
     SetEraseMode(0);
+}
+
+void Formformula(int i, int j)
+{
+    int str_len, index;
+    char *text = calculatorP->button_text[i][j];
+    int k;
+
+    //printf("2:#%s#\n", text);
+    str_len = strlen(text);
+    //printf("len:%d\n", str_len);
+    for (index = 0; index < str_len; ++index) {
+        //printf("3:%c, index:%d\n", text[index], buffer_index);
+        *(formula_buffer + buffer_index++) = text[index];
+    }
+    /*for (k = 0; k <= buffer_index; ++k) {
+        printf("%c", *(formula_buffer+k));
+    }
+    printf("\n");*/
+    //printf("2:#%s#\n", formula_buffer);
+    //printf("4:%c\n", *(formula_buffer+1));
+}
+
+void show_formula(void)
+{
+    RefreshPartDisplay(gap_width + 1.1 * MODIFY, 
+                       window_height - gap_height - 1.1 * MODIFY, 
+                       window_width - 2 * gap_width - 2 * 1.1 * MODIFY,
+                       OutputHeight - 2 * 1.1 * MODIFY);
+    RefreshPartDisplay(gap_width + 1.1 * MODIFY, 
+                       window_height - gap_height - 2 * OutputHeight - 1.1 * MODIFY,
+                       window_width - 2 * gap_width - 2 * 1.1 * MODIFY,
+                       OutputHeight - 2 * 1.1 * MODIFY);
+    MovePen(gap_width + 1.1 * MODIFY, 
+            window_height - gap_height - 0.5 * OutputHeight - 0.5 * GetFontHeight());
+    DrawTextString(formula_buffer);
+    MovePen(gap_width + 1.1 * MODIFY, 
+            window_height - gap_height - 1.5 * OutputHeight - 0.5 * GetFontHeight());
+    //DrawTextString(formula_buffer); //error message    
+
 }
