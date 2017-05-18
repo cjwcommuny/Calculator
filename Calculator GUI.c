@@ -14,7 +14,7 @@
 #define BUTTON_COLUMN 5
 #define BUTTON_ROW 9
 #define MOVE_COLOR "Red"
-#define SELECT_COLOR "Black"
+#define SELECT_COLOR "Blue"
 #define CHECK_WINDOW_SIZE 1
 #define CHECK_WINDOW_SIZE_TIME 200
 #define ERROR_LIMIT 0.02
@@ -284,14 +284,17 @@ void MouseEventProcess(int x, int y, int button, int event)
             isMouseDown = TRUE;
             switch (button) {
                 case LEFT_BUTTON:
+                    //printf("test\n");
                     CheckAndOperate();
                     break;
             }
             break;
         case BUTTON_UP:
             isButtonUp = TRUE;//the instant the button up
-            CheckAndOperate();
             isMouseDown = FALSE;
+            //printf("test\n");
+            CheckAndOperate();
+            
             isButtonUp = FALSE;
             break;
     }
@@ -357,29 +360,33 @@ void CheckAndOperate(void)
         for (j = 0; j < BUTTON_COLUMN; ++j) {
             //printf("here\n");
             if (CheckPosition(CurrentPoint->x, CurrentPoint->y, i, j)) {
-                if (CurrentRow != i || CurrentColumn != j) {
-                    ColorResponseCount = 0;
-                    CurrentRow = i;
-                    CurrentColumn = j;
-                }//check whether change button
-                if (ColorResponseCount >= 1) {
-                    //printf("here\n");
-                    return;
-                }
-                ColorResponseCount++;
+                
                 //printf("here1\n");
                 if (isMouseDown) {
+                    //printf("here\n");
                     ColorResponse(i, j, SELECT_COLOR);
                 } else if (isButtonUp) {
+                    //printf("test\n");
                     TextPosition.x = (j+0.5)*ButtonWidth;
                     TextPosition.y = (BUTTON_ROW-i-0.5)*ButtonHeight;
-                    RefreshPartDisplay(i * ButtonWidth, 
+                    RefreshPartDisplay(j * ButtonWidth, 
                                        window_height - 2 * gap_height - 2 * OutputHeight - (i+1) * ButtonHeight, 
                                        ButtonWidth, ButtonHeight);
+                    ColorResponse(i, j, MOVE_COLOR);
                     PrintTextCenter(calculatorP->button_text[i][j], TextPosition);
                 } else {
                     //printf("%d, %d\n", i, j);
                     //printf("here2\n");
+                    if (CurrentRow != i || CurrentColumn != j) {
+                    ColorResponseCount = 0;
+                    CurrentRow = i;
+                    CurrentColumn = j;
+                    }//check whether change button
+                    if (ColorResponseCount >= 1) {
+                        //printf("here\n");
+                        return;
+                    }
+                    ColorResponseCount++;
                     ColorResponse(i, j, MOVE_COLOR);
                 }
                 //operate(i, j);
