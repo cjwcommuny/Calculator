@@ -83,10 +83,10 @@ void TimerEventProcess(int timerID);
 
 void DrawCalculatorFrame(void);
 void InitCalculator(void);
-void RefreshDisplay(void);
+//void RefreshDisplay(void);
 void RefreshPartDisplay(double x, double y, double width, double height);
 void DrawOutputFrame(void);
-void DrawRectangle(double x, double y, double width, double height);
+//void DrawRectangle(double x, double y, double width, double height);
 void PrintText(void);
 void PrintTextCenter(char *text, struct Point);
 void InitBuffer(void);
@@ -129,7 +129,7 @@ void InitBuffer(void)
     }
 }
 
-void RefreshDisplay(void)
+/*void RefreshDisplay(void)
 {
     SetEraseMode(TRUE);
     StartFilledRegion(1);
@@ -137,7 +137,7 @@ void RefreshDisplay(void)
     EndFilledRegion();
     //MovePen(CurrentPoint->x, CurrentPoint->y);
     SetEraseMode(FALSE);
-}
+}*/
 
 void RefreshPartDisplay(double x, double y, double width, double height)
 {
@@ -318,14 +318,14 @@ void TimerEventProcess(int timerID)
     }*/
 }
 
-void DrawRectangle(double x, double y, double width, double height)
+/*void DrawRectangle(double x, double y, double width, double height)
 {
     MovePen(x, y);
     DrawLine(width, 0);
     DrawLine(0, height);
     DrawLine(-width, 0);
     DrawLine(0, -height);
-}
+}*/
 
 void CheckAndOperate(void)
 {
