@@ -64,7 +64,8 @@ double ButtonHeight, ButtonWidth;
 double gap_height, gap_width;
 double window_width, window_height;
 int testcount = 0;
-int ColorResponseCount = 0;
+int ColorResponseCount = 0; //only have to refresh one time
+int CurrentRow = -1, CurrentColumn = -1;
 /*char *ButtonText[] = {
         "MC", "MR", "M+", "M-", "MS",
         "CE", "C", "", "",
@@ -95,6 +96,8 @@ bool CheckPosition(double x, double y, int i, int j);
 void ColorResponse(int i, int j, char *color);
 void FillPart(double x, double y, double width, double height, string color);
 void RefreshPre(void);
+void test(void);
+void DrawVoidRectangle(double x, double y, double width, double height);
 
 void Main()
 {
@@ -120,6 +123,10 @@ void Main()
     //startTimer(CHECK_WINDOW_SIZE, CHECK_WINDOW_SIZE_TIME);
 }
 
+void test(void)
+{
+
+}
 void InitBuffer(void)
 {
     int i;
@@ -146,12 +153,13 @@ void RefreshPartDisplay(double x, double y, double width, double height)
     DrawRectangle(x, y, width, height);
     EndFilledRegion();
     SetEraseMode(FALSE);
+    DrawVoidRectangle(x, y, width, height);
 }
 
 void FillPart(double x, double y, double width, double height, string color)
 {
     char *PreColor;
-
+    //printf("here\n");
     PreColor = GetPenColor();
     SetPenColor(color);
     StartFilledRegion(1);
@@ -238,7 +246,7 @@ void PrintText(void)
     for (i = 0; i < BUTTON_ROW; i++) {
         for (j = 0; j < BUTTON_COLUMN; j++) {
             TextPosition.x = (j+0.5)*ButtonWidth;
-            TextPosition.y = (BUTTON_ROW-i)*ButtonHeight;
+            TextPosition.y = (BUTTON_ROW-i-0.5)*ButtonHeight;
             //testcount++;
             //printf("test:%d\n", testcount);
             //printf("TEST:(%d, %d):%f, %f\n", i , j, TextPosition.x, TextPosition.y);
@@ -267,7 +275,7 @@ void MouseEventProcess(int x, int y, int button, int event)
     PreviousPoint->y = CurrentPoint->y;
     CurrentPoint->x = ScaleXInches(x);
     CurrentPoint->y = GetWindowHeight() - ScaleXInches(y);
-
+    //printf("mouse\n");
     RefreshPre();
     CheckAndOperate();
     switch (event) {
@@ -280,7 +288,7 @@ void MouseEventProcess(int x, int y, int button, int event)
             }
             break;
         case BUTTON_UP:
-            isButtonUp = TRUE;
+            isButtonUp = TRUE;//the instant the button up
             CheckAndOperate();
             isMouseDown = FALSE;
             isButtonUp = FALSE;
@@ -333,25 +341,45 @@ void CheckAndOperate(void)
     //double window_width = GetWindowWidth();
     int i, j;
     struct Point TextPosition;
+    //printf("CheckAndOperate\n");
 
-    if (ColorResponseCount >= 1) return;
-    ColorResponseCount++;
-    if (CurrentPoint->y > window_height - 2 * gap_height - 2 * OutputHeight) return;
+    
+    if (CurrentPoint->y > window_height - 2 * gap_height - 2 * OutputHeight) {
+        //printf("return\n");
+        CurrentRow = -1;
+        CurrentColumn = -1;
+        return;
+    }
+    
 
     for (i = 0; i < BUTTON_ROW; ++i) {
         for (j = 0; j < BUTTON_COLUMN; ++j) {
+            //printf("here\n");
             if (CheckPosition(CurrentPoint->x, CurrentPoint->y, i, j)) {
+                if (CurrentRow != i || CurrentColumn != j) {
+                    ColorResponseCount = 0;
+                    CurrentRow = i;
+                    CurrentColumn = j;
+                }//check whether change button
+                if (ColorResponseCount >= 1) {
+                    //printf("here\n");
+                    return;
+                }
+                ColorResponseCount++;
+                //printf("here1\n");
                 if (isMouseDown) {
                     ColorResponse(i, j, SELECT_COLOR);
-                } else if (!isButtonUp) {
-                    ColorResponse(i, j, MOVE_COLOR);
-                } else {
+                } else if (isButtonUp) {
                     TextPosition.x = (j+0.5)*ButtonWidth;
-                    TextPosition.y = (BUTTON_ROW-i)*ButtonHeight;
+                    TextPosition.y = (BUTTON_ROW-i-0.5)*ButtonHeight;
                     RefreshPartDisplay(i * ButtonWidth, 
                                        window_height - 2 * gap_height - 2 * OutputHeight - (i+1) * ButtonHeight, 
                                        ButtonWidth, ButtonHeight);
                     PrintTextCenter(calculatorP->button_text[i][j], TextPosition);
+                } else {
+                    //printf("%d, %d\n", i, j);
+                    //printf("here2\n");
+                    ColorResponse(i, j, MOVE_COLOR);
                 }
                 //operate(i, j);
                 return;
@@ -363,25 +391,24 @@ void CheckAndOperate(void)
 bool CheckPosition(double x, double y, int i, int j)
 {
     //double window_height 
-    if (x >= i * ButtonWidth && 
-        x <= (i+1) * ButtonWidth && 
+    if (x >= j * ButtonWidth && 
+        x <= (j+1) * ButtonWidth && 
         y >= window_height - 2 * gap_height - 2 * OutputHeight - (i+1) * ButtonHeight && 
-        y <= window_height - 2 * gap_height - 2 * OutputHeight - i * ButtonHeight) 
-        return TRUE;
+        y <= window_height - 2 * gap_height - 2 * OutputHeight - i * ButtonHeight) return TRUE;
     return FALSE;
 }
 
 void ColorResponse(int i, int j, char *color)
 {
     struct Point TextPosition;
-
+    //printf("here\n");
     TextPosition.x = (j+0.5)*ButtonWidth;
-    TextPosition.y = (BUTTON_ROW-i)*ButtonHeight;
-    RefreshPartDisplay(i * ButtonWidth, 
+    TextPosition.y = (BUTTON_ROW-i-0.5)*ButtonHeight;
+    RefreshPartDisplay(j * ButtonWidth, 
                        window_height - 2 * gap_height - 2 * OutputHeight - (i+1) * ButtonHeight, 
                        ButtonWidth, 
                        ButtonHeight);
-    FillPart(i * ButtonWidth, 
+    FillPart(j * ButtonWidth, 
              window_height - 2 * gap_height - 2 * OutputHeight - (i+1) * ButtonHeight, 
              ButtonWidth, 
              ButtonHeight, 
@@ -392,16 +419,33 @@ void ColorResponse(int i, int j, char *color)
 void RefreshPre(void)
 {
     int i, j;
+    struct Point TextPosition;
 
     for (i = 0; i < BUTTON_ROW; ++i) {
         for (j = 0; j < BUTTON_COLUMN; ++j) {
             if (CheckPosition(PreviousPoint->x, PreviousPoint->y, i, j) && 
                 !CheckPosition(CurrentPoint->x, CurrentPoint->y, i, j)) {
-                RefreshPartDisplay(i * ButtonWidth, 
+                RefreshPartDisplay(j * ButtonWidth, 
                          window_height - 2 * gap_height - 2 * OutputHeight - (i+1) * ButtonHeight, 
                          ButtonWidth, 
                          ButtonHeight);
+                /*FillPart(j * ButtonWidth, 
+                         window_height - 2 * gap_height - 2 * OutputHeight - (i+1) * ButtonHeight, 
+                         ButtonWidth, 
+                         ButtonHeight,
+                         "White");*/
+                TextPosition.x = (j+0.5)*ButtonWidth;
+                TextPosition.y = (BUTTON_ROW-i-0.5)*ButtonHeight;
+                PrintTextCenter(calculatorP->button_text[i][j], TextPosition);
+                return;
             }
         }
     }
+}
+
+void DrawVoidRectangle(double x, double y, double width, double height)
+{
+    SetEraseMode(1);
+    DrawRectangle(x, y, width, height);
+    SetEraseMode(0);
 }
