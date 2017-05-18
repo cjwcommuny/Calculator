@@ -10,6 +10,14 @@
 #include "graphics.h"
 #include "extgraph.h"
 
+#include <windows.h>
+#include <olectl.h>
+#include <mmsystem.h>
+#include <wingdi.h>
+#include <ole2.h>
+#include <ocidl.h>
+#include <winuser.h>
+
 //#define BUTTON_SHAPE() 
 #define BUTTON_COLUMN 5
 #define BUTTON_ROW 9
@@ -80,6 +88,7 @@ int CurrentRow = -1, CurrentColumn = -1;
         "(", ")", "0", ".", "="
     };*/
 
+void KeyboardEventProcess(int key,int event);
 void CharEventProcess(char c);
 void MouseEventProcess(int x, int y, int button, int event);
 void TimerEventProcess(int timerID);
@@ -107,7 +116,7 @@ void Main()
 {
     SetWindowTitle("Calculaor");
     InitGraphics();
-    InitConsole();
+    //InitConsole();
 
     CurrentPoint = GetBlock(sizeof(struct Point));
     PreviousPoint = GetBlock(sizeof(struct Point));
@@ -121,6 +130,7 @@ void Main()
     DrawCalculatorFrame();
     //printf("#%s#\n\n", formula_buffer);
     registerCharEvent(CharEventProcess);
+    registerKeyboardEvent(KeyboardEventProcess);
 	registerMouseEvent(MouseEventProcess);
 	//registerTimerEvent(TimerEventProcess);
 
@@ -311,12 +321,33 @@ void MouseEventProcess(int x, int y, int button, int event)
 
 void KeyboardEventProcess(int key,int event)
 {
-
+    switch (event) {
+        case KEY_DOWN:
+            switch (key) {
+                case VK_BACK:
+                    if (buffer_index == 0) break;
+                    *(formula_buffer + --buffer_index) = '\0';
+                    break;
+            }
+            break;
+        default:
+            break;
+    }
+    show_formula();
 }
 
 void CharEventProcess(char c)
 {
-
+    switch (c) {
+        case 8: //BACKSPACE
+            break;
+        case 127: //DEL
+            break;
+        default:
+            *(formula_buffer + buffer_index++) = c;
+            break;
+    }
+    show_formula();
 }
 
 void TimerEventProcess(int timerID)
@@ -385,7 +416,7 @@ void CheckAndOperate(void)
                                        ButtonWidth, ButtonHeight);
                     ColorResponse(i, j, MOVE_COLOR);
                     PrintTextCenter(calculatorP->button_text[i][j], TextPosition);
-                    printf("1:#%s#\n", formula_buffer);
+                    //printf("1:#%s#\n", formula_buffer);
                 } else {
                     //printf("%d, %d\n", i, j);
                     //printf("here2\n");
@@ -477,6 +508,38 @@ void Formformula(int i, int j)
     int k;
 
     //printf("2:#%s#\n", text);
+    switch ((i*BUTTON_COLUMN)+j) {
+        case 0://MC
+            return;
+        case 1://MR
+            return;
+        case 2://M+
+            return;
+        case 3://M-
+            return;
+        case 4://MS
+            return;
+        case 5://CE
+            for (k = 0; k < buffer_index; ++k) {
+                formula_buffer[k] = '\0';
+            }
+            buffer_index = 0;
+            return;
+        case 6://C
+            return;
+        case 7://BackSpace
+            if (buffer_index == 0) return;
+            *(formula_buffer + --buffer_index) = '\0';
+            return;
+        case 8://NONE
+            return;
+        case 9://NONE
+            return;
+        case 44://=
+            *(formula_buffer + buffer_index++) = '\n';
+            return;
+    }
+
     str_len = strlen(text);
     //printf("len:%d\n", str_len);
     for (index = 0; index < str_len; ++index) {
@@ -493,18 +556,25 @@ void Formformula(int i, int j)
 
 void show_formula(void)
 {
-    RefreshPartDisplay(gap_width + 1.1 * MODIFY, 
-                       window_height - gap_height - 1.1 * MODIFY, 
-                       window_width - 2 * gap_width - 2 * 1.1 * MODIFY,
-                       OutputHeight - 2 * 1.1 * MODIFY);
-    RefreshPartDisplay(gap_width + 1.1 * MODIFY, 
-                       window_height - gap_height - 2 * OutputHeight - 1.1 * MODIFY,
-                       window_width - 2 * gap_width - 2 * 1.1 * MODIFY,
-                       OutputHeight - 2 * 1.1 * MODIFY);
-    MovePen(gap_width + 1.1 * MODIFY, 
+    //printf("test\n");
+    //printf("%f, %f\n", OutputHeight - 2 * 0.8 * MODIFY, OutputHeight - 0.8 * MODIFY);
+    //printf("middle:%f, %f\n", window_height - gap_height - OutputHeight, 
+                          //window_height - gap_height - 2 * OutputHeight + 0.8 * MODIFY + OutputHeight - 2 * 0.8 * MODIFY);
+    RefreshPartDisplay(gap_width, window_height - gap_height - 2 * OutputHeight, window_width - 2 * gap_width, 2 * OutputHeight);
+    DrawOutputFrame();
+    /*RefreshPartDisplay(gap_width + 0.8 * MODIFY, 
+                       window_height - gap_height - OutputHeight + 0.8 * MODIFY, 
+                       window_width - 2 * gap_width - 2 * 0.8 * MODIFY,
+                       OutputHeight - 2 * 0.8 * MODIFY);
+    RefreshPartDisplay(gap_width + 0.8 * MODIFY, 
+                       window_height - gap_height - 2 * OutputHeight + 0.8 * MODIFY,
+                       window_width - 2 * gap_width - 2 * 0.8 * MODIFY,
+                       OutputHeight - 2 * 0.8 * MODIFY);*/
+    MovePen(gap_width + 0.8 * MODIFY, 
             window_height - gap_height - 0.5 * OutputHeight - 0.5 * GetFontHeight());
+    //printf("#%s#\n", formula_buffer);
     DrawTextString(formula_buffer);
-    MovePen(gap_width + 1.1 * MODIFY, 
+    MovePen(gap_width + 0.8 * MODIFY, 
             window_height - gap_height - 1.5 * OutputHeight - 0.5 * GetFontHeight());
     //DrawTextString(formula_buffer); //error message    
 
