@@ -35,8 +35,16 @@ main()
 {
     //Prompt();
     input_str = GetBlock(MAXSIZE * sizeof(char));
-    input_str = " 3+5\n";
-    //scanf("%s", input_str);
+    //temp_str = GetBlock(MAXSIZE * sizeof(char));
+    //char original_str[MAXSIZE] = " 5+(-1)\n";
+    //original_str = ;
+    //input_str = original_str;
+    //strcpy(input_str, temp_str);
+    //input_str = temp_str;
+    scanf("%s", input_str);
+    getchar();
+    input_str = Concat(input_str, "\n");
+    //printf("#%s#", input_str);
     ConvertToPostfix();
     Process();
     setjmp(JumpBuffer);
@@ -94,8 +102,9 @@ int ConvertToPostfix(void)
                 }
                 *(++input) = *(input_str++);
                 if ((*input < '0' || *input > '9') && (*input != '.')) {
-                    printf("%c\n", *input);
-                    *(--input_str) = *input;
+                    //printf("%c\n", *input);
+                    --input_str;
+                    //*(--input_str) = *input;
                     break;
                 }
                 i++;
@@ -113,14 +122,16 @@ int ConvertToPostfix(void)
                         return ERROR;
                     }
             		else {
-                        *(--input_str) = *(input+2);
+                        --input_str;
+                        //*(--input_str) = *(input+2);
             			input = "3.14159\0";
             			Enqueue(PostfixNotation, input);
             		}
             	}
                 PreCh = input;
             } else if (*input == 'e' && ((*(input+1) = *(input_str++)) < 'a' || *(input+1) > 'z')) {
-                *(--input_str) = *(input+1);
+                --input_str;
+                //*(--input_str) = *(input+1);
             	input = "2.71828\0";
             	Enqueue(PostfixNotation, input);
                 PreCh = input;
@@ -128,7 +139,7 @@ int ConvertToPostfix(void)
             	int i = 1;
             	char *InputOrigin;
             
-                if (*input == 'e') *(--input_str) = *(input+1);
+                if (*input == 'e') --input_str;//*(--input_str) = *(input+1);
             	InputOrigin = input;
             	while (TRUE) {
                 	if (i == STRINGSIZE-1) {
@@ -138,7 +149,8 @@ int ConvertToPostfix(void)
                 	*(++input) = *(input_str++);
                 	i++;
                 	if (*input < 'a' || *input > 'z') {
-                        *(--input_str) = *(input);
+                        input_str--;
+                        //*(input_str) = *(input);
                     	break;
                 	}
             	}
@@ -315,7 +327,7 @@ double CallFunction(string NameOfFunction, struct stack_node **OperandStackP)
 void Output(string str)
 {
     printf("The answer is %.2f\n\n", strtod(str, NULL));
-    FreeBlock(OperandStack);
-    FreeBlock(OperandStackP);
-    FreeBlock(PostfixNotation);
+    //FreeBlock(OperandStack);
+    //FreeBlock(OperandStackP);
+    //FreeBlock(PostfixNotation);
 }
