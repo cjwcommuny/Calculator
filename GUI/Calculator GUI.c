@@ -9,6 +9,9 @@
 #include <setjmp.h>
 #include "graphics.h"
 #include "extgraph.h"
+#include "newgraph.h"
+
+#include "CalculatorKer.h"
 
 #include <windows.h>
 #include <olectl.h>
@@ -29,10 +32,6 @@
 #define BUFFER_SIZE 1000
 #define MODIFY 0.02
 
-struct Point {
-    double x;
-    double y;
-};
 
 struct button {
     //char *text;
@@ -44,6 +43,8 @@ struct window_size {
     double height;
 };
 
+extern char array[100];
+extern char *answer;
 bool isMouseDown = FALSE;
 bool isButtonUp = FALSE;
 char *formula_buffer;
@@ -111,12 +112,13 @@ void test(void);
 void DrawVoidRectangle(double x, double y, double width, double height);
 void Formformula(int i, int j);
 void show_formula(void);
+void show_answer(char *answer);
 
 void Main()
 {
     SetWindowTitle("Calculaor");
     InitGraphics();
-    //InitConsole();
+    InitConsole();
 
     CurrentPoint = GetBlock(sizeof(struct Point));
     PreviousPoint = GetBlock(sizeof(struct Point));
@@ -286,6 +288,19 @@ void PrintTextCenter(char *text, struct Point point)
     //printf("test:%d\n", testcount);
 }
 
+void show_answer(char *answer)
+{
+    printf("here\n");
+    //show_formula();
+    //MovePen(0, 0);
+    //DrawLine(1,1);
+    MovePen(gap_width + 0.8 * MODIFY, 
+            window_height - gap_height - 1.5 * OutputHeight - 0.5 * GetFontHeight());
+    DrawTextString(answer);
+    //DrawLine(5,5);
+    printf("%s\n", answer);
+}
+
 void MouseEventProcess(int x, int y, int button, int event)
 {
     PreviousPoint->x = CurrentPoint->x;
@@ -327,6 +342,14 @@ void KeyboardEventProcess(int key,int event)
                 case VK_BACK:
                     if (buffer_index == 0) break;
                     *(formula_buffer + --buffer_index) = '\0';
+                    break;
+                case VK_RETURN:
+                    //printf("%s\n", formula_buffer);
+                    *(formula_buffer + buffer_index++) = '\n';
+                    ker(formula_buffer);
+                    //printf("here\n");
+                    //printf("%s\n", array);
+                    show_answer(answer);
                     break;
             }
             break;
@@ -537,6 +560,9 @@ void Formformula(int i, int j)
             return;
         case 44://=
             *(formula_buffer + buffer_index++) = '\n';
+            //printf("#%s#\n", formula_buffer);
+            ker(formula_buffer);
+            printf("%s\n", array);
             return;
     }
 
@@ -560,7 +586,9 @@ void show_formula(void)
     //printf("%f, %f\n", OutputHeight - 2 * 0.8 * MODIFY, OutputHeight - 0.8 * MODIFY);
     //printf("middle:%f, %f\n", window_height - gap_height - OutputHeight, 
                           //window_height - gap_height - 2 * OutputHeight + 0.8 * MODIFY + OutputHeight - 2 * 0.8 * MODIFY);
-    RefreshPartDisplay(gap_width, window_height - gap_height - 2 * OutputHeight, window_width - 2 * gap_width, 2 * OutputHeight);
+    RefreshPartDisplay(gap_width, 
+                       window_height - gap_height - 2 * OutputHeight, window_width - 2 * gap_width, 
+                       2 * OutputHeight);
     DrawOutputFrame();
     /*RefreshPartDisplay(gap_width + 0.8 * MODIFY, 
                        window_height - gap_height - OutputHeight + 0.8 * MODIFY, 
@@ -574,8 +602,8 @@ void show_formula(void)
             window_height - gap_height - 0.5 * OutputHeight - 0.5 * GetFontHeight());
     //printf("#%s#\n", formula_buffer);
     DrawTextString(formula_buffer);
-    MovePen(gap_width + 0.8 * MODIFY, 
-            window_height - gap_height - 1.5 * OutputHeight - 0.5 * GetFontHeight());
+    /*MovePen(gap_width + 0.8 * MODIFY, 
+            window_height - gap_height - 1.5 * OutputHeight - 0.5 * GetFontHeight());*/
     //DrawTextString(formula_buffer); //error message    
 
 }

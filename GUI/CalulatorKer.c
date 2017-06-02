@@ -1,4 +1,26 @@
 #include "CalulatorKer.h"
+#include <stdio.h>
+#include "math.h"
+#include "genlib.h"
+#include "simpio.h"
+#include "queue.h"
+#include "stack.h" 
+#include <stdlib.h>
+#include "mathematic.h"
+#include <setjmp.h>
+
+queueADT PostfixNotation;
+struct stack_node **OperatorStackP;
+struct stack_node *OperatorStack;
+struct stack_node **OperandStackP;
+struct stack_node *OperandStack;
+jmp_buf JumpBuffer;
+char array[100];
+
+#define MAXSIZE 100
+#define STRINGSIZE 10
+#define ERROR 0
+#define SUCCESS 1
 
 void ker(char STR[])
 {
