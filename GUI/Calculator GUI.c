@@ -43,8 +43,9 @@ struct window_size {
     double height;
 };
 
+char store[100];
 extern char array[100];
-extern char *answer;
+//extern char *answer;
 bool isMouseDown = FALSE;
 bool isButtonUp = FALSE;
 char *formula_buffer;
@@ -59,7 +60,7 @@ struct Point *PreviousPoint;
 struct window_size *WindowSize;
 struct calculator_frame *calculatorP;
 struct calculator_frame calculatorTemp = {
-        "MC", "MR", "M+", "M-", "MS",
+        "MC", "MR", /*"M+", "M-"*/"", "", "MS",
         "CE", "C", "BackSpace", "", "",
         "sin", "cos", "tan", "abs", "!",
         "arcsin", "arccos", "arctan", "exp", "log",
@@ -116,9 +117,9 @@ void show_answer(char *answer);
 
 void Main()
 {
-    SetWindowTitle("Calculaor");
+    SetWindowTitle("Calculator");
     InitGraphics();
-    InitConsole();
+    //InitConsole();
 
     CurrentPoint = GetBlock(sizeof(struct Point));
     PreviousPoint = GetBlock(sizeof(struct Point));
@@ -152,6 +153,9 @@ void InitBuffer(void)
     formula_buffer = GetBlock(BUFFER_SIZE * sizeof(char));
     for (i = 0; i < BUFFER_SIZE; ++i) {
         formula_buffer[i] = '\0';
+    }
+    for (i = 0; i < 100; ++i) {
+        store[i] = '\0';
     }
 }
 
@@ -342,6 +346,8 @@ void MouseEventProcess(int x, int y, int button, int event)
 
 void KeyboardEventProcess(int key,int event)
 {
+    int k;
+
     switch (event) {
         case KEY_DOWN:
             switch (key) {
@@ -355,9 +361,14 @@ void KeyboardEventProcess(int key,int event)
                     *(formula_buffer + buffer_index++) = '\n';
                     //show_formula();
                     ker(formula_buffer);
+                    //printf("formula:#%s#\n", formula_buffer);
                     //printf("here\n");
                     //printf("%s\n", array);
-                    show_answer(answer);
+                    show_answer(array);
+                    for (k = 0; k < buffer_index; ++k) {
+                        formula_buffer[k] = '\0';
+                    }
+                    buffer_index = 0;
                     break;
             }
             break;
@@ -433,15 +444,19 @@ void CheckAndOperate(void)
         for (j = 0; j < BUTTON_COLUMN; ++j) {
             //printf("here\n");
             if (CheckPosition(CurrentPoint->x, CurrentPoint->y, i, j)) {
-                
+                if ((i == 0 && j == 2) ||
+                    (i == 0 && j == 3) ||
+                    (i == 1 && j == 3) ||
+                    (i == 1 && j == 4)) return;
                 //printf("here1\n");
                 if (isMouseDown) {
                     //printf("here\n");
-                    Formformula(i, j);
-                    show_formula();
+                    
                     ColorResponse(i, j, SELECT_COLOR);
                 } else if (isButtonUp) {
                     //printf("test\n");
+                    Formformula(i, j);
+                    
                     TextPosition.x = (j+0.5)*ButtonWidth;
                     TextPosition.y = (BUTTON_ROW-i-0.5)*ButtonHeight;
                     RefreshPartDisplay(j * ButtonWidth, 
@@ -543,26 +558,45 @@ void Formformula(int i, int j)
     //printf("2:#%s#\n", text);
     switch ((i*BUTTON_COLUMN)+j) {
         case 0://MC
+            store[0] = '\0';
             return;
         case 1://MR
+            strcpy(formula_buffer, store);
+            buffer_index = strlen(store);
+            printf("formula:%s\n", formula_buffer);
+            show_formula();
+            printf("store:%s\n", store);
+            show_answer(store);
             return;
         case 2://M+
             return;
         case 3://M-
             return;
         case 4://MS
+            if (array[0] != 'E') { //not error message
+                strcpy(store, array);
+            }
             return;
         case 5://CE
             for (k = 0; k < buffer_index; ++k) {
                 formula_buffer[k] = '\0';
             }
             buffer_index = 0;
+            show_formula();
             return;
         case 6://C
+            store[0] = '\0';
+            array[0] = '\0';
+            for (k = 0; k < buffer_index; ++k) {
+                formula_buffer[k] = '\0';
+            }
+            buffer_index = 0;
+            show_formula();
             return;
         case 7://BackSpace
             if (buffer_index == 0) return;
             *(formula_buffer + --buffer_index) = '\0';
+            show_formula();
             return;
         case 8://NONE
             return;
@@ -572,7 +606,12 @@ void Formformula(int i, int j)
             *(formula_buffer + buffer_index++) = '\n';
             //printf("#%s#\n", formula_buffer);
             ker(formula_buffer);
-            printf("%s\n", array);
+            show_answer(array);
+            for (k = 0; k < buffer_index; ++k) {
+                formula_buffer[k] = '\0';
+            }
+            buffer_index = 0;
+            //printf("%s\n", array);
             return;
     }
 
@@ -582,6 +621,7 @@ void Formformula(int i, int j)
         //printf("3:%c, index:%d\n", text[index], buffer_index);
         *(formula_buffer + buffer_index++) = text[index];
     }
+    show_formula();
     /*for (k = 0; k <= buffer_index; ++k) {
         printf("%c", *(formula_buffer+k));
     }

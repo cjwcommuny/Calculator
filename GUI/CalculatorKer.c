@@ -55,7 +55,7 @@ int ConvertToPostfix(char STR[])//
             int i;
             
             if (PreCh == NULL) {
-            	strcpy(array, "Input Nothing.\n");
+            	strcpy(array, "Error: Input Nothing.\n");
 				//printf("%s", array);
             	return ERROR;
             }
@@ -63,7 +63,7 @@ int ConvertToPostfix(char STR[])//
             while (StackSize(OperatorStack)) {
             	temp = Pop(OperatorStackP);
                 if ((*temp == '(') || (*temp == ')')) {
-                	strcpy(array, "Braces are not compatible.\n");
+                	strcpy(array, "Error: Braces are not compatible.\n");
 					//printf("%s", array);
                     return ERROR;
                 }
@@ -80,7 +80,7 @@ int ConvertToPostfix(char STR[])//
             InputOrigin = input;
             while (TRUE) {
                 if (i == STRINGSIZE-1) {
-                	strcpy(array, "A number is too long.\n");
+                	strcpy(array, "Error: A number is too long.\n");
 					//printf("%s", array);
                     return ERROR;
                 }
@@ -100,7 +100,7 @@ int ConvertToPostfix(char STR[])//
             	if (*(input+1) == 'i' || *(input+1) == 'I') {
             		*(input + 2) = STR[n + 2];//
             		if (*(input + 2) >= 'a' && *(input + 2) <= 'z') {
-            			strcpy(array, "illegal function name or PI.\n");
+            			strcpy(array, "Error: illegal function name or PI.\n");
 						//printf("%s", array);
                         return ERROR;
                     }
@@ -122,7 +122,7 @@ int ConvertToPostfix(char STR[])//
              	InputOrigin = input;
             	while (TRUE) {
                 	if (i == STRINGSIZE-1) {
-                 		strcpy(array, "The name of function is too long.\n");
+                 		strcpy(array, "Error: The name of function is too long.\n");
 						//printf("%s", array);
                         return ERROR;
                     }
@@ -177,7 +177,7 @@ int ConvertToPostfix(char STR[])//
             *(input+1) = '\0';
             while (TRUE) {
                 if (StackSize(OperatorStack) == 0) {
-                	strcpy(array, "Braces are not compatible\n");
+                	strcpy(array, "Error: Braces are not compatible\n");
 					//printf("%s", array);
                     return ERROR;
                 }
@@ -199,13 +199,13 @@ int ConvertToPostfix(char STR[])//
                 Enqueue(PostfixNotation, Pop(OperatorStackP));
             }
             if (*(temp = Top(OperatorStackP)) != '(') {
-            	strcpy(array, "Either the separator was misplaced or parentheses were mismatched.\n");
+            	strcpy(array, "Error: Either the separator was misplaced or parentheses were mismatched.\n");
 				//printf("%s", array);
                 return ERROR;
             }
             PreCh = input;
         } else {
-          	strcpy(array, "there is a illegal character.\n");
+          	strcpy(array, "Error: there is a illegal character.\n");
 		  	//printf("%s", array);
            	return ERROR;
        	  }
@@ -266,7 +266,7 @@ void Process(void)
         Output(Pop(OperandStackP));
     } else{
         //printf("4\n");
-    	strcpy(array, "Too much operands.\n");
+    	strcpy(array, "Error: Too much operands.\n");
 		//printf("%s", array);
 	} 
 }
@@ -298,7 +298,7 @@ double CallFunction(string NameOfFunction, struct stack_node **OperandStackP)
     } else if (StringEqual(NameOfFunction, "/")) {
         op1 = strtod(Pop(OperandStackP), NULL);
         if (op1 == 0) {
-        	strcpy(array, "The denominator of the numerator cannot have the value zero.\n");
+        	strcpy(array, "Error: The denominator of the numerator cannot have the value zero.\n");
 			//printf("%s", array);
 		    //longjmp(JumpBuffer, 1);
         }
@@ -317,7 +317,7 @@ double CallFunction(string NameOfFunction, struct stack_node **OperandStackP)
         op2 = strtod(Pop(OperandStackP), NULL);
         return LOG(op2, op1);
     } else {
-    	strcpy(array, "illegal function name.\n");
+    	strcpy(array, "Error: illegal function name.\n");
 		//printf("%s", array);
 	    //longjmp(JumpBuffer, 1);
     }
@@ -326,9 +326,9 @@ double CallFunction(string NameOfFunction, struct stack_node **OperandStackP)
 void Output(string str)
 {
     //printf("here1\n");
-    answer = GetBlock(sizeof(char) * MAXSIZE);
+    //answer = GetBlock(sizeof(char) * MAXSIZE);
 	sprintf(array, "%.2f", strtod(str, NULL));
-    strcpy(answer, array);
+    //strcpy(answer, array);
     //printf("here2\n");
 	//printf("%s", array);
     
