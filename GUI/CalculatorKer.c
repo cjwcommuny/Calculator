@@ -1,21 +1,22 @@
-#include "CalulatorKer.h"
-#include <stdio.h>
-#include "math.h"
-#include "genlib.h"
-#include "simpio.h"
-#include "queue.h"
-#include "stack.h" 
-#include <stdlib.h>
-#include "mathematic.h"
-#include <setjmp.h>
+#include "CalculatorKer.h"
+
+/*
+void ker(char STR[]);
+int ConvertToPostfix(char STR[]);
+void Process(void);
+bool CheckAssociation(string op);
+int CompareAssociationPriority(char op1, char op2);
+int NumOperand(string OperatorNameStr);
+double CallFunction(string NameOfFunction, struct stack_node **OperandStackP);
+void Output(string str);*/
 
 queueADT PostfixNotation;
 struct stack_node **OperatorStackP;
 struct stack_node *OperatorStack;
 struct stack_node **OperandStackP;
 struct stack_node *OperandStack;
-jmp_buf JumpBuffer;
 char array[100];
+char *answer;
 
 #define MAXSIZE 100
 #define STRINGSIZE 10
@@ -26,17 +27,16 @@ void ker(char STR[])
 {
 	int i;
 	//char STR[1000];//
-    while (TRUE){
-    	setjmp(JumpBuffer);
-        //fflush(stdin);
-    	//strcpy(array, "Please input the arithmetic expression:\n");
-		//printf("%s", array);
-		i = 0;
-    	while((STR[i] = getchar()) != '\n') i++;//
-    	STR[i] = '\0';
-        if (ConvertToPostfix(STR)) Process();
-    }
-    getchar(); 
+    //fflush(stdin);
+    //strcpy(array, "Please input the arithmetic expression:\n");
+    //printf("%s", array);
+    //i = 0;
+    //while((STR[i] = getchar()) != '\n') i++;//
+    //STR[i] = '\0';
+    //printf("#%s#\n", STR);
+    if (ConvertToPostfix(STR)) Process();
+    //printf("here_ker\n");
+    //getchar(); 
 }
 
 int ConvertToPostfix(char STR[])//
@@ -46,11 +46,11 @@ int ConvertToPostfix(char STR[])//
     OperatorStackP = &OperatorStack;
     NewStack(OperatorStackP);
     PostfixNotation = NewQueue();
-    
+    //printf("here\n");
     while (TRUE) {                          
         input = GetBlock(sizeof(char)*STRINGSIZE);
         *input = STR[n];//
-        if (*input == '\0') {             /*when there are no more tokens to read.*/
+        if (*input == '\n') {             /*when there are no more tokens to read.*/
             char *temp;
             int i;
             
@@ -69,8 +69,8 @@ int ConvertToPostfix(char STR[])//
                 }
                 Enqueue(PostfixNotation, temp);
             }
-                Enqueue(PostfixNotation, input);
-				break;
+            Enqueue(PostfixNotation, input);
+			break;
         } else if (*input == ' ' || *input == '\t') {
         	FreeBlock(input); /*Throw away the blank character.*/
         } else if (*input >= '0' && *input <= '9') {    /*If the token is a number, then push it to the output queue.*/
@@ -242,19 +242,30 @@ void Process(void)
     char *str;
     double TempOperand[MAXSIZE];
     double result;
+    int j;
 
 	OperandStackP = &OperandStack;
     NewStack(OperandStackP);
-
-    while ((*(str = Dequeue(PostfixNotation))) != '\0') {
+    
+    /*for (j = 0; j < 3; ++j) {
+        printf("%s#", Dequeue(PostfixNotation));
+    }
+    printf("\n");*/
+    //printf("here\n");
+    while ((*(str = Dequeue(PostfixNotation))) != '\n') {
+        //printf("1\n");
         if (*str >= '0' && *str <= '9') {
         	Push(OperandStackP, str);
         } 
         else if (*str == '-' && *(str+1) >= '0' && *(str+1) <= '9') Push(OperandStackP, str); 
         else Push(OperandStackP, RealToString(CallFunction(str, OperandStackP)));
     }
-    if (StackSize(OperandStack) == 1) Output(Pop(OperandStackP));
-    else{
+    //printf("2\n");
+    if (StackSize(OperandStack) == 1) {
+        //printf("3\n");
+        Output(Pop(OperandStackP));
+    } else{
+        //printf("4\n");
     	strcpy(array, "Too much operands.\n");
 		//printf("%s", array);
 	} 
@@ -289,7 +300,7 @@ double CallFunction(string NameOfFunction, struct stack_node **OperandStackP)
         if (op1 == 0) {
         	strcpy(array, "The denominator of the numerator cannot have the value zero.\n");
 			//printf("%s", array);
-		    longjmp(JumpBuffer, 1);
+		    //longjmp(JumpBuffer, 1);
         }
         op2 = strtod(Pop(OperandStackP), NULL);
         return op2 / op1;
@@ -308,15 +319,20 @@ double CallFunction(string NameOfFunction, struct stack_node **OperandStackP)
     } else {
     	strcpy(array, "illegal function name.\n");
 		//printf("%s", array);
-	    longjmp(JumpBuffer, 1);
+	    //longjmp(JumpBuffer, 1);
     }
 }
 
 void Output(string str)
 {
-	sprintf(array, "The answer is %.2f\n\n", strtod(str, NULL));
+    //printf("here1\n");
+    answer = GetBlock(sizeof(char) * MAXSIZE);
+	sprintf(array, "%.2f", strtod(str, NULL));
+    strcpy(answer, array);
+    //printf("here2\n");
 	//printf("%s", array);
-    FreeBlock(OperandStack);
-    FreeBlock(OperandStackP);
-    FreeBlock(PostfixNotation);
+    
+    //FreeBlock(OperandStack);
+    //FreeBlock(OperandStackP);
+    //FreeBlock(PostfixNotation);
 }

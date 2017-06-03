@@ -290,14 +290,20 @@ void PrintTextCenter(char *text, struct Point point)
 
 void show_answer(char *answer)
 {
-    printf("here\n");
+    //char temp;
+    //printf("here\n");
     //show_formula();
     //MovePen(0, 0);
     //DrawLine(1,1);
     MovePen(gap_width + 0.8 * MODIFY, 
             window_height - gap_height - 1.5 * OutputHeight - 0.5 * GetFontHeight());
+    /*printf("%f, %f\n", gap_width + 0.8 * MODIFY, window_height - gap_height - 1.5 * OutputHeight - 0.5 * GetFontHeight());
+    printf("%f, %f\n", GetCurrentX(), GetCurrentY());
+    DrawLine(5,5);*/
     DrawTextString(answer);
-    //DrawLine(5,5);
+    /*while ((temp = *(answer++)) != '\0') {
+        printf("%c#", temp);
+    }*/
     printf("%s\n", answer);
 }
 
@@ -342,10 +348,12 @@ void KeyboardEventProcess(int key,int event)
                 case VK_BACK:
                     if (buffer_index == 0) break;
                     *(formula_buffer + --buffer_index) = '\0';
+                    show_formula();
                     break;
                 case VK_RETURN:
                     //printf("%s\n", formula_buffer);
                     *(formula_buffer + buffer_index++) = '\n';
+                    //show_formula();
                     ker(formula_buffer);
                     //printf("here\n");
                     //printf("%s\n", array);
@@ -356,7 +364,7 @@ void KeyboardEventProcess(int key,int event)
         default:
             break;
     }
-    show_formula();
+    
 }
 
 void CharEventProcess(char c)
@@ -366,11 +374,13 @@ void CharEventProcess(char c)
             break;
         case 127: //DEL
             break;
+        case 13: //return
+            break;
         default:
             *(formula_buffer + buffer_index++) = c;
+            show_formula();
             break;
     }
-    show_formula();
 }
 
 void TimerEventProcess(int timerID)

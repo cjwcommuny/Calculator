@@ -1,5 +1,15 @@
-#ifdef _CalculatorKer_h
+#ifndef _CalculatorKer_h
 #define _CalculatorKer_h
+
+#include <stdio.h>
+#include "math.h"
+#include "genlib.h"
+#include "simpio.h"
+#include "queue.h"
+#include "stack.h" 
+#include <stdlib.h>
+#include "mathematic.h"
+#include <setjmp.h>
 
 void ker(char STR[]);
 int ConvertToPostfix(char STR[]);
